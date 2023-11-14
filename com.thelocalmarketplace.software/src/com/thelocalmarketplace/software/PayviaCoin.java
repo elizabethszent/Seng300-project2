@@ -44,6 +44,7 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 		dispenced = tray;
 		this.discrepancy = new_discrepancy;
 		this.coinSlot = new_coinSlot;
+		discrepancy.register(this);
 		
 	}
 	

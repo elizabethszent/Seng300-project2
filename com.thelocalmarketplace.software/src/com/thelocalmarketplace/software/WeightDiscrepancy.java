@@ -12,6 +12,9 @@ import com.jjjwelectronics.OverloadedDevice;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
 import com.jjjwelectronics.scale.ElectronicScaleListener;
 import com.jjjwelectronics.scale.IElectronicScale;
+import com.thelocalmarketplace.hardware.BarcodedProduct;
+import com.thelocalmarketplace.hardware.Product;
+
 import powerutility.NoPowerException;
 /**
  * This class represents a Weight Discrepancy checker that listens to changes in weight measurements on an
@@ -20,7 +23,7 @@ import powerutility.NoPowerException;
  *
  *@author Written by Elizabeth Szentmiklossy (UCID: 30165216)
  */
-public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> implements ElectronicScaleListener {
+public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> implements ElectronicScaleListener, AddItemListner {
 	// Fields to store the expected and actual weights.
 	Mass expectedWeight;
 	Mass actualWeight;
@@ -47,6 +50,12 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 		// Register this class as a listener for the provided listener.
 		listner.register(this);
 		
+		
+	}
+	@Override
+	public void ItemHasBeenAdded(Product product) {
+	    Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
+		expectedWeight = expectedWeight.sum(weightOfProduct); 
 		
 	}
 	/**
@@ -109,5 +118,6 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	@Override
 	public void aDeviceHasBeenTurnedOff(IDevice<? extends IDeviceListener> device) {
 	}
+
 
 }

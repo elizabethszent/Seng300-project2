@@ -6,6 +6,7 @@
 
 package com.thelocalmarketplace.software;
 
+import com.jjjwelectronics.AbstractDevice;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Mass;
@@ -29,7 +30,7 @@ import java.util.Map;
  * @author Abdelrahman Mohamed UCID: 30162037
  * @author Elizabeth Szentmiklossy UCID: 30165216
  */
-public final class AddItemByBarcode implements BarcodeScannerListener {
+public final class AddItemByBarcode extends AbstractDevice<AddItemListner> implements BarcodeScannerListener, WeightDiscrepancyListner {
 
     /**
      * The order where products will be added.
@@ -51,6 +52,8 @@ public final class AddItemByBarcode implements BarcodeScannerListener {
      * The database of products.
      */
     private Map<Barcode, BarcodedProduct> database;
+    
+    private IBarcodeScanner barcodeScanner;
     /**
      * Constructs an AddItemByBarcode object with the expected weight, order, WeightDiscrepancy object, ActionBlocker object, ElectronicScale object, and database.
      *
@@ -62,15 +65,21 @@ public final class AddItemByBarcode implements BarcodeScannerListener {
      * @param database       The database of products.
      */
 
-    public AddItemByBarcode(Mass expectedWeight, ArrayList<Product> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale, Map<Barcode, BarcodedProduct> database) {
-        this.discrepancy = discrepancy;
-        this.discrepancy.expectedWeight  = expectedWeight;
+    public AddItemByBarcode(IBarcodeScanner barcodeScanner, ArrayList<Product> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale, Map<Barcode, BarcodedProduct> database) {
         this.order = order;
         this.actionBlocker = blocker;
         this.scale = scale;
         this.database = database;
+        this.barcodeScanner = barcodeScanner;
+        discrepancy.register(this);
+        
     }
-
+    
+    public void ItemHasBeenAdded(Product product){
+    	for(AddItemListner l : listeners()){
+			l.ItemHasBeenAdded(product);
+			}
+    }
 
     /**
      * Adds a product to the order by scanning its barcode.
@@ -81,32 +90,39 @@ public final class AddItemByBarcode implements BarcodeScannerListener {
     public void aBarcodeHasBeenScanned(IBarcodeScanner barcodeScanner, Barcode barcode) {
         // Check if state is satisfying the precondition: The system is ready to accept customer input.
 
-        try {
+     
             // Add gui to block customer interaction
+        	
             actionBlocker.blockInteraction();
             System.out.println("Checking barcode...");
-
+            try {
             Product product = getProductByBarcode(barcode, database);
 
             addBarcodedProductToOrder(product, order, barcodeScanner);
+            ItemHasBeenAdded(product);
+        }
+            catch (ProductNotFoundException e){
+            }
+            
             // implement GUI saying to add to bagging area
+            
             System.out.println("Item added.\nPlease add item to bagging area.\nWaiting...");
             //  Compare actual vs expected weights to check for any discrepancies (also checks if item is in bagging area)
-            discrepancy.actualWeight = scale.getCurrentMassOnTheScale();
-            if (!discrepancy.CompareWeight()) {
-                throw new WeightDiscrepancyException("Weight does not match the expected weight.");
-            }
-
-
-            actionBlocker.unblockInteraction();
-        } catch (ProductNotFoundException e) {
-            // GUI message would go here
-            e.printStackTrace();
-            System.out.println("Product not found.");
-        } catch (OverloadedDevice e) {
-            throw new RuntimeException(e);
+              
         }
-    }
+    
+    
+	@Override
+	public void WeightDiscrancyOccurs() {
+		barcodeScanner.disable();
+	}
+
+	@Override
+	public void WeightDiscrancyResolved() {
+		barcodeScanner.enable();
+		
+	}
+
 
     /**
      * Exception class for handling weight discrepancy errors during barcode scanning.
@@ -145,14 +161,6 @@ public final class AddItemByBarcode implements BarcodeScannerListener {
         return order;
     }
 
-    /**
-     * Retrieves the expected weight of the products in the order.
-     *
-     * @return The expected weight of the products in the order.
-     */
-    public Mass getExpectedWeight( ) {
-        return discrepancy.expectedWeight;
-    }
 
 
     /**
