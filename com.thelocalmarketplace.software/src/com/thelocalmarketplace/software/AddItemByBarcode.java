@@ -70,6 +70,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
         this.actionBlocker = blocker;
         this.scale = scale;
         this.database = database;
+        this.discrepancy = discrepancy;
         this.barcodeScanner = barcodeScanner;
         discrepancy.register(this);
         
@@ -182,6 +183,11 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
             barcodeScanner.disable();
         }
 
+    }
+    public Mass getExpectedWeight() {
+    	Mass expectedweight = discrepancy.expectedWeight;
+		return expectedweight;
+    	
     }
 
     @Override
