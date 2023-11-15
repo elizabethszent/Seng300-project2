@@ -39,11 +39,12 @@ public class WeightDiscrepancyTest {
 		PowerGrid grid = PowerGrid.instance();
 		Numeral[] numerals = new Numeral[]{Numeral.valueOf((byte) 2)};
 		
-		ElectronicScaleGold listner = new ElectronicScaleGold();
+		AbstractElectronicScale listner = new ElectronicScaleBronze();
 		// Create an instance of WeightDiscrepancy with an expected weight of one gram and the electronic scale listener.
-		WeightDiscrepancy discrepancy = new WeightDiscrepancy(Mass.ONE_GRAM, listner);
+    	WeightDiscrepancy discrepancy = new WeightDiscrepancy(new Mass(5*Mass.MICROGRAMS_PER_GRAM), listner);
 		Barcode barcode = new Barcode(numerals);
 		BarcodedItem item;
+		
 		
 
 		/**
@@ -54,7 +55,7 @@ public class WeightDiscrepancyTest {
 	    	listner.plugIn(grid);
 	    	listner.turnOn();
 	    	// Create a BarcodedItem with the specified barcode and one gram of weight.
-	    	item = new BarcodedItem(barcode, Mass.ONE_GRAM);
+	    	item = new BarcodedItem(barcode, new Mass(5*Mass.MICROGRAMS_PER_GRAM));
 	    	listner.addAnItem(item);
 	    	// Verify that the expected and actual weights are equal.
 	        assertEquals(discrepancy.CompareWeight(),true);
@@ -64,10 +65,31 @@ public class WeightDiscrepancyTest {
 	     * Test case to check if the actual weight is more than the expected weight.
 	     */
 	    @Test
+	    public void Sensetivity() {
+	    	listner.plugIn(grid);
+	    	listner.turnOn();
+	    	Mass mass = new Mass(3*Mass.MICROGRAMS_PER_GRAM/2);
+	    	
+	    	// Create a BarcodedItem with the specified barcode and a weight of 20 grams.
+	    	item = new BarcodedItem(barcode, mass);
+	    	listner.addAnItem(item);
+	    	Mass Sensetivity = listner.getSensitivityLimit();
+	    	item = new BarcodedItem(barcode, Sensetivity);
+	    	listner.addAnItem(item);
+	    	
+	    	// Verify that the expected and actual weights are not equal.
+	        assertEquals(discrepancy.CompareWeight(),true);   	
+			
+		
+		}
+	    /**
+	     * Test case to check if the actual weight is more than the expected weight.
+	     */
+	    @Test
 	    public void MoreThan() {
 	    	listner.plugIn(grid);
 	    	listner.turnOn();
-	    	Mass mass = new Mass(20);
+	    	Mass mass = new Mass(20*Mass.MICROGRAMS_PER_GRAM);
 	    	// Create a BarcodedItem with the specified barcode and a weight of 20 grams.
 	    	item = new BarcodedItem(barcode, mass);
 	    	listner.addAnItem(item);
