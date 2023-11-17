@@ -124,12 +124,14 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     
 	@Override
 	public void WeightDiscrancyOccurs() {
-		barcodeScanner.disable();
+		MainScanner.disable();
+		handheldScanner.disable();
 	}
 
 	@Override
 	public void WeightDiscrancyResolved() {
-		barcodeScanner.enable();
+		MainScanner.enable();
+		handheldScanner.enable();
 		
 	}
 
