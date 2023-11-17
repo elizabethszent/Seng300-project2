@@ -81,6 +81,7 @@ public class AddItemByBarcodeTest {
     private Map<Barcode, BarcodedProduct> database;
     
 	private BarcodeScannerBronze barcodescanner;
+	private BarcodeScannerBronze handHeldScanner;
 	private ElectronicScaleBronze electronicScale;
 	private BarcodedItem item;
 
@@ -101,7 +102,7 @@ public class AddItemByBarcodeTest {
         blocker = new ActionBlocker();
         barcodescanner  = new BarcodeScannerBronze();
         item = new BarcodedItem(barcode, expectedWeight);
-        addItemByBarcode = new AddItemByBarcode(barcodescanner, order, discrepancy, blocker, electronicScale, database);
+        addItemByBarcode = new AddItemByBarcode(barcodescanner, handHeldScanner, order, discrepancy, blocker, electronicScale);
         addItemByBarcode.register(discrepancy);
 
         // add product to database
