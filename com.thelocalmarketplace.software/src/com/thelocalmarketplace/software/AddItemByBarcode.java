@@ -54,9 +54,14 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      */
     
     private Map<Barcode, BarcodedProduct> database;
-   
-    
-    private IBarcodeScanner barcodeScanner;
+    /**
+     * Main barcode scanner
+     */
+    private IBarcodeScanner MainScanner;
+    /**
+     * Barcode Scanner for the hand held scanner
+     */
+    private IBarcodeScanner handheldScanner;
     /**
      * Constructs an AddItemByBarcode object with the expected weight, order, WeightDiscrepancy object, ActionBlocker object, ElectronicScale object, and database.
      *
@@ -68,12 +73,13 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param database       The database of products.
      */
 
-    public AddItemByBarcode(IBarcodeScanner barcodeScanner, ArrayList<Product> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
+    public AddItemByBarcode(IBarcodeScanner MainScanner, IBarcodeScanner handheldScanner, ArrayList<Product> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
         this.order = order;
         this.actionBlocker = blocker;
         this.scale = scale;
         this.discrepancy = discrepancy;
-        this.barcodeScanner = barcodeScanner;
+        this.MainScanner = MainScanner;
+        this.handheldScanner = handheldScanner;
         this.database = ProductDatabases.BARCODED_PRODUCT_DATABASE;
         discrepancy.register(this);
         
