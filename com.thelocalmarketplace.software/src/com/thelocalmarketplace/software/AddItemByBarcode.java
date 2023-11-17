@@ -17,6 +17,7 @@ import com.jjjwelectronics.scanner.BarcodeScannerListener;
 import com.jjjwelectronics.scanner.IBarcodeScanner;
 import com.thelocalmarketplace.hardware.BarcodedProduct;
 import com.thelocalmarketplace.hardware.Product;
+import com.thelocalmarketplace.hardware.external.ProductDatabases;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -51,7 +52,9 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     /**
      * The database of products.
      */
+    
     private Map<Barcode, BarcodedProduct> database;
+   
     
     private IBarcodeScanner barcodeScanner;
     /**
@@ -65,13 +68,13 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param database       The database of products.
      */
 
-    public AddItemByBarcode(IBarcodeScanner barcodeScanner, ArrayList<Product> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale, Map<Barcode, BarcodedProduct> database) {
+    public AddItemByBarcode(IBarcodeScanner barcodeScanner, ArrayList<Product> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
         this.order = order;
         this.actionBlocker = blocker;
         this.scale = scale;
-        this.database = database;
         this.discrepancy = discrepancy;
         this.barcodeScanner = barcodeScanner;
+        this.database = ProductDatabases.BARCODED_PRODUCT_DATABASE;
         discrepancy.register(this);
         
     }
@@ -97,7 +100,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
             actionBlocker.blockInteraction();
             System.out.println("Checking barcode...");
             try {
-            Product product = getProductByBarcode(barcode, database);
+            Product product = getProductByBarcode(barcode);
 
             addBarcodedProductToOrder(product, order, barcodeScanner);
             ItemHasBeenAdded(product);
@@ -145,9 +148,9 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @return The BarcodedProduct associated with the barcode.
      * @throws ProductNotFoundException If the product is not found with the specified barcode.
      */
-    private BarcodedProduct getProductByBarcode(Barcode scannedBarcode, Map<Barcode, BarcodedProduct> database) throws ProductNotFoundException {
-        if (database.containsKey(scannedBarcode)) {
-            return database.get(scannedBarcode);
+    private BarcodedProduct getProductByBarcode(Barcode scannedBarcode) throws ProductNotFoundException {
+        if ( database.containsKey(scannedBarcode)) {
+            return  database.get(scannedBarcode);
         } else {
             throw new ProductNotFoundException("Product not found with specified barcode.");
         }
