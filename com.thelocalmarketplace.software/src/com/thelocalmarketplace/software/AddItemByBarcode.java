@@ -191,6 +191,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      */
     private void addBarcodedProductToOrder(Product product, ArrayList<Product> order, IBarcodeScanner barcodeScanner) {
         order.add(product);
+        totalPrice = totalPrice + product.getPrice();
 
         Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
         discrepancy.expectedWeight = discrepancy.expectedWeight.sum(weightOfProduct);
@@ -206,6 +207,10 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     	Mass expectedweight = discrepancy.expectedWeight;
 		return expectedweight;
     	
+    }
+    
+    public double getTotalPrice() {
+    	return this.totalPrice;
     }
 
     @Override
