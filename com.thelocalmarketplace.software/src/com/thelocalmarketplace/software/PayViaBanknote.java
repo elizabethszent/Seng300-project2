@@ -1,5 +1,6 @@
 package com.thelocalmarketplace.software;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 import com.tdc.CashOverloadException;
@@ -15,6 +16,8 @@ import com.tdc.banknote.BanknoteInsertionSlot;
 import com.tdc.banknote.BanknoteInsertionSlotObserver;
 import com.tdc.banknote.BanknoteStorageUnit;
 import com.tdc.banknote.BanknoteStorageUnitObserver;
+import com.tdc.banknote.BanknoteValidator;
+import com.tdc.banknote.BanknoteValidatorObserver;
 
 /**
  * PayViaBanknote class handles payments through the use of banknotes, monitors payment process and 
@@ -23,7 +26,7 @@ import com.tdc.banknote.BanknoteStorageUnitObserver;
  * @author Jane Magai (UCID:30180119)
  * 
  */
-public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispensationSlotObserver,BanknoteInsertionSlotObserver {
+public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispensationSlotObserver,BanknoteInsertionSlotObserver,BanknoteValidatorObserver {
 	private BigDecimal amountInserted;
 	private BigDecimal amountOwed;
 	private BanknoteDispensationSlot dispensationSlot;
@@ -101,17 +104,20 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 	
 	
 	
-	
+	// enables components (Insertionslot, Dispensationslot)
 	@Override
 	public void enabled(IComponent<? extends IComponentObserver> component) {
-		// TODO Auto-generated method stub
+		component.enable();
 		
 	}
+	
+	// disables components
 	@Override
 	public void disabled(IComponent<? extends IComponentObserver> component) {
-		// TODO Auto-generated method stub
+		component.disable();
 		
 	}
+
 	@Override
 	public void turnedOn(IComponent<? extends IComponentObserver> component) {
 		// TODO Auto-generated method stub
@@ -168,6 +174,20 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 
 	@Override
 	public void banknoteRemoved(BanknoteInsertionSlot slot) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void goodBanknote(BanknoteValidator validator, Currency currency, BigDecimal denomination) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void badBanknote(BanknoteValidator validator) {
 		// TODO Auto-generated method stub
 		
 	}
