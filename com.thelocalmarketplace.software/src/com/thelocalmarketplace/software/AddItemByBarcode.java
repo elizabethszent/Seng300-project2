@@ -37,6 +37,12 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * The order where products will be added.
      */
     private ArrayList<Product> order;
+    
+    /**
+     * Variable to keep track of total cost of the order
+     */
+    private double totalPrice;
+    
     /**
      * The WeightDiscrepancy object for weight comparison.
      */
@@ -81,6 +87,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
         this.MainScanner = MainScanner;
         this.handheldScanner = handheldScanner;
         this.database = ProductDatabases.BARCODED_PRODUCT_DATABASE;
+        this.totalPrice = 0.0;
         discrepancy.register(this);
         
     }
@@ -118,7 +125,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
             
             System.out.println("Item added.\nPlease add item to bagging area.\nWaiting...");
             //  Compare actual vs expected weights to check for any discrepancies (also checks if item is in bagging area)
-              
+            actionBlocker.unblockInteraction();  
         }
     
     
