@@ -106,12 +106,12 @@ public class AddItemByBarcodeTest {
     public void SetUp() {
         order = new ArrayList<>();
         Numeral[] numeralArray1 = new Numeral[] {Numeral.zero, Numeral.one, Numeral.zero};
-        Numeral[] numeralArray2 = new Numeral[] {Numeral.zero, Numeral.one, Numeral.zero};
+        Numeral[] numeralArray2 = new Numeral[] {Numeral.zero, Numeral.one, Numeral.one};
         barcode1 = new Barcode(numeralArray1);
         barcode2 = new Barcode(numeralArray2);
         electronicScale = new ElectronicScaleBronze();
-        barcodedProduct1 = new BarcodedProduct(barcode1, "Sample Product", 50, 50);
-        barcodedProduct2 = new BarcodedProduct(barcode2, "Other Sample Product", 100, 100);
+        barcodedProduct1 = new BarcodedProduct(barcode1, "Apple", 50, 50);
+        barcodedProduct2 = new BarcodedProduct(barcode2, "Toast", 100, 100);
         expectedWeight = Mass.ZERO;
         discrepancy = new WeightDiscrepancy(expectedWeight, electronicScale);
         blocker = new ActionBlocker();
@@ -120,7 +120,8 @@ public class AddItemByBarcodeTest {
         item1 = new BarcodedItem(barcode1, new Mass(barcodedProduct1.getExpectedWeight()));
         item2 = new BarcodedItem(barcode2, new Mass(barcodedProduct2.getExpectedWeight()));
         addItemByBarcode = new AddItemByBarcode(barcodescanner, handHeldScanner, order, discrepancy, blocker, electronicScale);
-
+        addItemByBarcode.register(discrepancy);
+        
         // add product to database
         ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode1, barcodedProduct1);
         ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode2, barcodedProduct2);
@@ -145,6 +146,7 @@ public class AddItemByBarcodeTest {
     @After
     public void tearDown() {
     	addItemByBarcode = null;
+    	order = null;
     }
 
     /**
