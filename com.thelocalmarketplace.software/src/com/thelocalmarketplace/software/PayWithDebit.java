@@ -3,6 +3,7 @@ package com.thelocalmarketplace.software;
 import java.io.IOException;
 import java.math.BigDecimal;
 
+import com.jjjwelectronics.card.AbstractCardReader;
 import com.jjjwelectronics.card.Card;
 import com.jjjwelectronics.card.Card.CardData;
 import com.jjjwelectronics.card.Card.CardSwipeData;
@@ -21,7 +22,7 @@ public class PayWithDebit {
 	CardSwipeData cardData;
 	CardIssuer cardIssuer;
 	String customerSignature;
-	CardReaderBronze cardReader;
+	public long holdNumber;
 
 	
 	 public PayWithDebit(CardIssuer issuer,BigDecimal amount) {
@@ -39,24 +40,30 @@ public class PayWithDebit {
 	}
 	
 	public boolean bankAuthentication(CardSwipeData cardData) {
-		long holdNumber = cardIssuer.authorizeHold(cardData.getNumber(), amountOwed.doubleValue());
+		holdNumber = cardIssuer.authorizeHold(cardData.getNumber(), amountOwed.doubleValue());
         boolean transactionResult = cardIssuer.postTransaction(cardData.getNumber(), holdNumber, amountOwed.doubleValue());
         cardIssuer.releaseHold(cardData.getNumber(), holdNumber);
         return transactionResult;
 	}
 	
-public void payViaDebitSwipe(Card card, String signature) throws IOException {
+public void payViaDebitSwipe(Card card, String signature,AbstractCardReader cardReader) throws IOException {
 		
 		if (sysReadyForPayment==true) {
 			System.out.println("Amount Due: "+ amountOwed);
-		cardData = (CardSwipeData) cardReader.swipe(card);
+		boolean swipeExecuted = false;
+		while(swipeExecuted==false) {
+			try{cardData = (CardSwipeData) cardReader.swipe(card);
+			swipeExecuted=true;
+		
 		promptForSignature(signature);
 		if (bankAuthentication(cardData)==true) {
-			System.out.println("Amount Due: 0");
-			//print receipt
+			amountOwed = new BigDecimal(0);
+			System.out.println("Amount Due: " + amountOwed);
+			
 		}
 	    }
-	}
+		catch(Exception e) {}}	
+	}}
 
 public CardIssuer getCardIssuer() {
 	return cardIssuer;
