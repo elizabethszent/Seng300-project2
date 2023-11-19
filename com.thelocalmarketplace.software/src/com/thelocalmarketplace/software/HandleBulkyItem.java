@@ -1,6 +1,7 @@
 package com.thelocalmarketplace.software;
 
 import com.thelocalmarketplace.hardware.AbstractSelfCheckoutStation;
+import com.thelocalmarketplace.hardware.Product;
 import com.thelocalmarketplace.hardware.external.*;
 
 import ca.ucalgary.seng300.simulation.SimulationException;
@@ -21,6 +22,7 @@ public class HandleBulkyItem implements IDeviceListener, ElectronicScaleListener
     private WeightDiscrepancy weightDiscrepancy; // handling weight discrepancy
     private Item bulkyItem; // the bulky item that is not being bagged
     private boolean attendantApproval; // whether the attendant approves or not
+    private Product product;
 
     public HandleBulkyItem(AbstractSelfCheckoutStation station, IDeviceListener listener) {
         this.station = station;
@@ -41,7 +43,7 @@ public class HandleBulkyItem implements IDeviceListener, ElectronicScaleListener
             notifyAttendant(attendantApproval);
             return true;
         } else {
-            weightDiscrepancy.WeightDescrepancyEvent();
+			weightDiscrepancy.ItemHasBeenAdded(product);
             return false;
         }
     }
@@ -71,7 +73,6 @@ public class HandleBulkyItem implements IDeviceListener, ElectronicScaleListener
             baggingAreaScale.removeAnItem(bulkyItem);
 
             // Assuming the scale automatically updates the expected weight and notifies listeners
-            // No additional code is required to manually update the weight
         } catch (SimulationException e) {
         }
     }
@@ -93,12 +94,7 @@ public class HandleBulkyItem implements IDeviceListener, ElectronicScaleListener
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'aDeviceHasBeenEnabled'");
     }
-
-    // Define the setExpectedWeight(Mass) method in the IElectronicScale interface
-    public void setExpectedWeight(Mass expectedWeight) {
-        // Implementation goes here
-    }
-
+    
     @Override
     public void aDeviceHasBeenDisabled(IDevice<? extends IDeviceListener> device) {
         // TODO Auto-generated method stub
