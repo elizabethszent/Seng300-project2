@@ -110,17 +110,16 @@ public class AddItemByBarcodeTest {
         barcode1 = new Barcode(numeralArray1);
         barcode2 = new Barcode(numeralArray2);
         electronicScale = new ElectronicScaleBronze();
-        barcodedProduct1 = new BarcodedProduct(barcode1, "Sample Product", 100, 50);
-        barcodedProduct2 = new BarcodedProduct(barcode2, "Other Sample Product", 50, 100);
-        expectedWeight = Mass.ONE_GRAM;
+        barcodedProduct1 = new BarcodedProduct(barcode1, "Sample Product", 50, 50);
+        barcodedProduct2 = new BarcodedProduct(barcode2, "Other Sample Product", 100, 100);
+        expectedWeight = Mass.ZERO;
         discrepancy = new WeightDiscrepancy(expectedWeight, electronicScale);
         blocker = new ActionBlocker();
         barcodescanner  = new BarcodeScannerBronze();
         handHeldScanner = new BarcodeScannerBronze();
-        item1 = new BarcodedItem(barcode1, expectedWeight);
-        item2 = new BarcodedItem(barcode2, expectedWeight);
+        item1 = new BarcodedItem(barcode1, new Mass(barcodedProduct1.getExpectedWeight()));
+        item2 = new BarcodedItem(barcode2, new Mass(barcodedProduct2.getExpectedWeight()));
         addItemByBarcode = new AddItemByBarcode(barcodescanner, handHeldScanner, order, discrepancy, blocker, electronicScale);
-        addItemByBarcode.register(discrepancy);
 
         // add product to database
         ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode1, barcodedProduct1);
@@ -181,12 +180,10 @@ public class AddItemByBarcodeTest {
     public void testGetExpectedWeight() {
     	
         assertEquals(expectedWeight, addItemByBarcode.getExpectedWeight());
-
         StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
         electronicScale.addAnItem(item1); // use stub to simulate weight change
         addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode1);
-
-        assertEquals(new Mass(barcodedProduct1.getExpectedWeight()),(addItemByBarcode.getExpectedWeight()));
+        assertEquals(new Mass(barcodedProduct1.getExpectedWeight()),addItemByBarcode.getExpectedWeight());
     }
 
     /**
@@ -213,6 +210,21 @@ public class AddItemByBarcodeTest {
         assertEquals(2, addItemByBarcode.getOrder().size());
     }
 
+    
+    /**
+     *  Tests whether price is correctly maintained
+     */
+    @Test
+    public void testTotalPrice() {
+    	assertEquals(0.0, addItemByBarcode.getTotalPrice(), 0.01);
+    	StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
+    	electronicScale.addAnItem(item1); // use stub to simulate weight change
+        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode1);
+        assertEquals(50, addItemByBarcode.getTotalPrice(), 0.01);
+        electronicScale.addAnItem(item2); // use stub to simulate weight change
+        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode2);
+        assertEquals(150, addItemByBarcode.getTotalPrice(), 0.01);
+    }
     /**
      * Stub class for simulating barcode scanning. This class simulates the behavior of a barcode scanner, allowing for testing of the AddItemByBarcode class.
      */

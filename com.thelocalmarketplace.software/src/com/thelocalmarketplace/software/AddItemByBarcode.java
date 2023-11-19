@@ -113,8 +113,8 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
             actionBlocker.blockInteraction();
             System.out.println("Checking barcode...");
             try {
-            Product product = getProductByBarcode(barcode);
-
+            BarcodedProduct product = getProductByBarcode(barcode);
+            totalPrice = totalPrice + product.getPrice();
             addBarcodedProductToOrder(product, order, barcodeScanner);
             ItemHasBeenAdded(product);
         }
@@ -139,7 +139,6 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
 	public void WeightDiscrancyResolved() {
 		MainScanner.enable();
 		handheldScanner.enable();
-		
 	}
 
 
@@ -164,7 +163,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @throws ProductNotFoundException If the product is not found with the specified barcode.
      */
     private BarcodedProduct getProductByBarcode(Barcode scannedBarcode) throws ProductNotFoundException {
-        if ( database.containsKey(scannedBarcode)) {
+        if (database.containsKey(scannedBarcode)) {
             return  database.get(scannedBarcode);
         } else {
             throw new ProductNotFoundException("Product not found with specified barcode.");
@@ -189,11 +188,10 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param order         The order where products will be added.
      * @param barcodeScanner The barcode scanner.
      */
-    private void addBarcodedProductToOrder(Product product, ArrayList<Product> order, IBarcodeScanner barcodeScanner) {
+    private void addBarcodedProductToOrder(BarcodedProduct product, ArrayList<Product> order, IBarcodeScanner barcodeScanner) {
         order.add(product);
-        totalPrice = totalPrice + product.getPrice();
 
-        Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
+        Mass weightOfProduct = new Mass(product.getExpectedWeight());
         discrepancy.expectedWeight = discrepancy.expectedWeight.sum(weightOfProduct);
 
         if(discrepancy.CompareWeight()) {
@@ -204,8 +202,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
 
     }
     public Mass getExpectedWeight() {
-    	Mass expectedweight = discrepancy.expectedWeight;
-		return expectedweight;
+		return discrepancy.expectedWeight;
     	
     }
     
