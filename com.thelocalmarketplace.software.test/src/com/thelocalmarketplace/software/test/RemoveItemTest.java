@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -21,8 +22,11 @@ import com.thelocalmarketplace.hardware.PriceLookUpCode;
 import com.thelocalmarketplace.software.ActionBlocker;
 import com.thelocalmarketplace.software.RemoveItem;
 import com.thelocalmarketplace.software.WeightDiscrepancy;
+import com.thelocalmarketplace.software.exceptions.OrderException;
 import com.jjjwelectronics.Mass;
+import com.jjjwelectronics.Mass.MassDifference;
 import com.jjjwelectronics.Numeral;
+import com.jjjwelectronics.OverloadedDevice;
 
 import powerutility.PowerGrid;
 
@@ -46,6 +50,7 @@ public class RemoveItemTest
 	WeightDiscrepancy discrepancy;
 	ActionBlocker actionBlocker;
 	int orderSize;
+	Mass massOfOrder;
 	
 	/*
 	ElectronicScaleGold listner = new ElectronicScaleGold();
@@ -94,11 +99,20 @@ public class RemoveItemTest
 		this.order.add(shampoo);
 		this.orderSize = this.order.size();
 		
+		this.massOfOrder = orange.getMass().sum(shampoo.getMass());
+		
 		this.actionBlocker = new ActionBlocker();
-//		this.discrepancy = new WeightDiscrepancy(Mass.ZERO, bronzeScale);
-//		this.tempRemoveItemInstance = new RemoveItem(this.order, this.discrepancy, this.actionBlocker);
-		this.tempRemoveItemInstance = new RemoveItem(this.order, this.actionBlocker);
-//		this.tempRemoveItemInstance.register(discrepancy);
+		this.discrepancy = new WeightDiscrepancy(this.massOfOrder, bronzeScale);
+		this.tempRemoveItemInstance = new RemoveItem(this.order, this.discrepancy, this.actionBlocker);
+//		this.tempRemoveItemInstance = new RemoveItem(this.order, this.actionBlocker);
+		this.tempRemoveItemInstance.register(discrepancy);
+		
+		bronzeScale.addAnItem(orange);
+		bronzeScale.addAnItem(shampoo);
+		silverScale.addAnItem(orange);
+		silverScale.addAnItem(shampoo);
+		goldScale.addAnItem(orange);
+		goldScale.addAnItem(shampoo);
 	} 
 
 	@Test
@@ -125,55 +139,61 @@ public class RemoveItemTest
 		assertFalse(silverScaleDisabled);
 		assertFalse(bronzeScaleDisabled);
 	}
-	
+
 	@Test
-	public void TestRemoveValidItem()
+	public void TestRemovePLUCodedItem()
 	{
-		//call removeItem
-		//removeItem()
-//		tempRemoveItemInstance.removeItemFromCart(orange, 1, cart);
 		tempRemoveItemInstance.removeItemFromOrder(orange, order);
 		assertEquals(this.orderSize - 1, this.order.size());
 	}
+
+	@Test
+	public void TestRemoveBarcodedItem()
+	{
+		tempRemoveItemInstance.removeItemFromOrder(shampoo, order);
+		assertEquals(this.orderSize - 1, this.order.size());
+	}
+
 	
 	@Test
 	public void TestRemoveMultipleItems()
 	{
-		this.cart.put(orange, 2);
-		tempRemoveItemInstance.removeItemFromCart(orange, 1, cart);
-		assertEquals(cartSize - 1, cart.size());
+		tempRemoveItemInstance.removeItemFromOrder(orange, order);
+		tempRemoveItemInstance.removeItemFromOrder(shampoo, order);
+		assertEquals(this.orderSize - 2, this.order.size());
 	}
 	
-	@Test
-	public void TestRemoveNegativeAmountOfItems()
+	
+	@Test (expected = OrderException.class)
+	public void TestRemoveItemNotInOrder()
 	{
-		
+		Mass appleMass = new Mass(220000000);
+		PriceLookUpCode applePLUCode = new PriceLookUpCode("0132");
+		PLUCodedItem apple = new PLUCodedItem(applePLUCode, appleMass);
+
+		tempRemoveItemInstance.removeItemFromOrder(apple, order);
+		assertEquals(this.orderSize - 1, 0);
+	}
+
+	@Test (expected = OrderException.class)
+	public void TestRemoveFromEmptyCart()
+	{
+		Mass appleMass = new Mass(220000000);
+		PriceLookUpCode applePLUCode = new PriceLookUpCode("0132");
+		PLUCodedItem apple = new PLUCodedItem(applePLUCode, appleMass);
+
+		tempRemoveItemInstance.removeItemFromOrder(orange, order);
+		tempRemoveItemInstance.removeItemFromOrder(shampoo, order);
+		tempRemoveItemInstance.removeItemFromOrder(apple, order);
 	}
 	
-	@Test
-	public void TestRemovePLUCodedItem()
+	
+	@Test (expected = NullPointerException.class)
+	public void TestRemoveNullItem()
 	{
-		
+		Item item = null;
+		tempRemoveItemInstance.removeItemFromOrder(item, order);
 	}
 	
-	@Test public void TestRemoveBarcodedItem()
-	{
-		
-	}
-	
-	@Test public void TestRemoveItemNotInCart()
-	{
-		
-	}
-	
-	@Test public void TestRemoveInvalidItem()
-	{
-		//might just be the same as the previous test
-	}
-	
-	@Test public void TestRemoveFromEmptyCart()
-	{
-		
-	}
 
 }

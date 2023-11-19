@@ -10,6 +10,7 @@ import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.scale.ElectronicScaleListener;
 import com.jjjwelectronics.scale.IElectronicScale;
 import com.thelocalmarketplace.hardware.Product;
+import com.thelocalmarketplace.software.exceptions.OrderException;
 import com.jjjwelectronics.AbstractDevice;
 
 
@@ -99,11 +100,16 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 
 	public void removeItemFromOrder(Item itemToRemove, ArrayList<Item> order)
 	{
+		if(itemToRemove == null)
+		{
+			throw new NullPointerException();
+		}
+		
 		if(order.size() <= 0)
 		{
-			//order is empty
-//			throw new SimulationException();
+			throw new OrderException();
 		}
+
 		actionBlocker.blockInteraction();
 		
 		boolean itemFoundInOrder = false;
@@ -118,10 +124,14 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 		
 		if(!itemFoundInOrder)
 		{
+			throw new OrderException();
 			//item not found exception
 		}
 		
-		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(itemToRemove.getMass().inGrams()));
+		order.remove(itemToRemove);
+		actionBlocker.unblockInteraction();
+		
+//		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(itemToRemove.getMass().inGrams()));
 		
 		/*
 		if(discrepancy.CompareWeight())
