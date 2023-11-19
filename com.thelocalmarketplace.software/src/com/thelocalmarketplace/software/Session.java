@@ -20,9 +20,9 @@ import java.util.ArrayList;
  */
 
 public class Session implements WeightDiscrepancyListner {
-	private int status = 0;  // 0 for not started, 1 for started and running, 2 for frozen (due to weight discrepency)
-	private ArrayList<AbstractDevice> hardwareDevices;
-	private ArrayList<AbstractComponent> hardwareComponents;
+	private int status;  // 0 for not started, 1 for started and running, 2 for frozen (due to weight discrepency)
+	private ArrayList<AbstractDevice> hardwareDevices = new ArrayList<AbstractDevice>();
+	private ArrayList<AbstractComponent> hardwareComponents = new ArrayList<AbstractComponent>();
 
 	public Session (Object... args) {
 		for (Object arg : args) {
@@ -35,6 +35,8 @@ public class Session implements WeightDiscrepancyListner {
 			} else {
 				System.out.printf("Argument %s is neither a device or component.", arg);
 			}
+			this.freezeSession();
+			status = 0;
 		}
 	}
 
@@ -58,9 +60,14 @@ public class Session implements WeightDiscrepancyListner {
 		}
 	}
 
+	public int getStatus() {
+		return this.status;
+	}
+
 	public void startSession() {
 		if (status == 0) {
 			status = 1;
+			unfreezeSession();
 		}
 	}
 
