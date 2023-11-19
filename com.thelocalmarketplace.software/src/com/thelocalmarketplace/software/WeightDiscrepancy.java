@@ -58,7 +58,7 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	@Override
 	public void ItemHasBeenAdded(Product product) {
 	    Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
-		expectedWeight = expectedWeight.sum(weightOfProduct); 
+		//expectedWeight = expectedWeight.sum(weightOfProduct); 
 		CompareWeight();
 		WeightDescrepancyEvent();
 		
