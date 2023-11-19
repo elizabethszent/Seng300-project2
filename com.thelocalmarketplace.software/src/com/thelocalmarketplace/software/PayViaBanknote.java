@@ -41,7 +41,7 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 	 * @param amountOwed      The amount owed for payment
 	 * @param dispenserSlot   Represents BanknoteDispensationslot that dispenses banknotes.
 	 * @param insertSlot      Represents BanknoteInsertionslot where banknotes are entered.
-	 * @param dispenser       Abstract version of BanknoteDispensor to allow use of all tiers of checkout system (Bronze, Silver, Gold)
+	 * @param dispenser       List of Abstract version of BanknoteDispensor to allow use of all tiers of checkout system (Bronze, Silver, Gold)
 	 * 
 	 */
 	
@@ -50,29 +50,32 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 		this.dispensationSlot = dispensationSlot;
 		this.insertionSlot = insertionSlot;
 		this.dispenserList = dispenserList ;
+		this.amountInserted = BigDecimal.ZERO;
 	}
-		
+	
 	
 	/**
-	 *Shows making a payment using banknote
+	 *Represents a customer succesfully making a payment meaning paid full amount, also keeps track of change and current amount owed by customer;
 	 *
 	 *@param amountInserted. The banknote used for payment.
 	 *@return True if payment is succesful meaning full amount is paid, false otherwise
-	 * @throws CashOverloadException 
-	 * @throws DisabledException 
 	 */
-	public boolean makePayment (Banknote banknoteAdded){
+	public Boolean makePayment (Banknote banknoteAdded){
 		amountInserted = amountInserted.add(banknoteAdded.getDenomination());
 	    if(amountInserted.compareTo(amountOwed)>=0) {
 	    	change = amountInserted.subtract(amountOwed);
-	    	return true;	    	
+	    	System.out.println("Payment is complete, change due is" + change.toPlainString()); // Stimulates signalling to the customer that the payment is succesful and change is due.
+	    	return true;
 	    }
 	    else
+	    	System.out.println("Payment not complete balance remaining "+ amountOwed );
 	    	return false;	        
 	}
 	
 	/**
-	 * Returns change to customer, does not return chsnge if change filed is zero.
+	 * Returns change to customer, does not return change if change is zero.
+	 * @throws CashOverloadException 
+	 * @throws DisabledException 
 	 */			
 		
 	public void returnChange() throws CashOverloadException, DisabledException{
@@ -102,20 +105,16 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 	
 	
 	
-	
-	
-	// enables components (Insertionslot, Dispensationslot)
+
+	//Unimplemented Observor methods
 	@Override
 	public void enabled(IComponent<? extends IComponentObserver> component) {
-		component.enable();
-		
+		// TODO Auto-generated method stub
 	}
 	
-	// disables components
 	@Override
 	public void disabled(IComponent<? extends IComponentObserver> component) {
-		component.disable();
-		
+		// TODO Auto-generated method stub
 	}
 
 	@Override
