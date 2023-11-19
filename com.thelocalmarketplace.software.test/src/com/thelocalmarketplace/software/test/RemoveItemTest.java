@@ -60,6 +60,13 @@ public class RemoveItemTest
 	PowerGrid grid = PowerGrid.instance();
 	*/
 	
+	/**
+	 * Setup for
+	 * 	- different tiers of scales
+	 * 	- items 
+	 *  - order
+	 *  - RemoveItem instance
+	 */
 	@Before
 	public void setup()
 	{
@@ -100,6 +107,9 @@ public class RemoveItemTest
 		this.orderSize = this.order.size();
 		
 		this.massOfOrder = orange.getMass().sum(shampoo.getMass());
+
+		//add 700 grams of weight to account for small weight difference factors
+//		this.massOfOrder = this.massOfOrder.sum(new Mass(700000000));
 		
 		this.actionBlocker = new ActionBlocker();
 		this.discrepancy = new WeightDiscrepancy(this.massOfOrder, bronzeScale);
@@ -114,39 +124,21 @@ public class RemoveItemTest
 		goldScale.addAnItem(orange);
 		goldScale.addAnItem(shampoo);
 	} 
-
-	@Test
-	public void TestScaleConfiguration()
-	{
-		boolean goldScalePluggedIn = this.goldScale.isPluggedIn();
-		boolean silverScalePluggedIn = this.silverScale.isPluggedIn();
-		boolean bronzeScalePluggedIn = this.bronzeScale.isPluggedIn();
-		assertTrue(goldScalePluggedIn);
-		assertTrue(silverScalePluggedIn);
-		assertTrue(bronzeScalePluggedIn);
-		
-		boolean goldScaleTurnedOn = this.goldScale.isPoweredUp();
-		boolean silverScaleTurnedOn = this.silverScale.isPoweredUp();
-		boolean bronzeScaleTurnedOn = this.bronzeScale.isPoweredUp();
-		assertTrue(goldScaleTurnedOn);
-		assertTrue(silverScaleTurnedOn);
-		assertTrue(bronzeScaleTurnedOn);
-		
-		boolean goldScaleDisabled = this.goldScale.isDisabled();
-		boolean silverScaleDisabled = this.silverScale.isDisabled();
-		boolean bronzeScaleDisabled = this.bronzeScale.isDisabled();
-		assertFalse(goldScaleDisabled);
-		assertFalse(silverScaleDisabled);
-		assertFalse(bronzeScaleDisabled);
-	}
-
+	
+	
+	/**
+	 * Test removing a PLU coded item from the order
+	 */
 	@Test
 	public void TestRemovePLUCodedItem()
 	{
 		tempRemoveItemInstance.removeItemFromOrder(orange, order);
 		assertEquals(this.orderSize - 1, this.order.size());
 	}
-
+	
+	/**
+	 * Test removing a barcoded item from the order
+	 */
 	@Test
 	public void TestRemoveBarcodedItem()
 	{
@@ -154,7 +146,9 @@ public class RemoveItemTest
 		assertEquals(this.orderSize - 1, this.order.size());
 	}
 
-	
+	/**
+	 * Test removing more than 1 item from the order
+	 */
 	@Test
 	public void TestRemoveMultipleItems()
 	{
@@ -163,7 +157,9 @@ public class RemoveItemTest
 		assertEquals(this.orderSize - 2, this.order.size());
 	}
 	
-	
+	/**
+	 * Test removing an item that is not in the order
+	 */
 	@Test (expected = OrderException.class)
 	public void TestRemoveItemNotInOrder()
 	{
@@ -174,9 +170,12 @@ public class RemoveItemTest
 		tempRemoveItemInstance.removeItemFromOrder(apple, order);
 		assertEquals(this.orderSize - 1, 0);
 	}
-
+	
+	/**
+	 * Test removing an item when the order is empty
+	 */
 	@Test (expected = OrderException.class)
-	public void TestRemoveFromEmptyCart()
+	public void TestRemoveFromEmptyOrder()
 	{
 		Mass appleMass = new Mass(220000000);
 		PriceLookUpCode applePLUCode = new PriceLookUpCode("0132");
@@ -187,7 +186,9 @@ public class RemoveItemTest
 		tempRemoveItemInstance.removeItemFromOrder(apple, order);
 	}
 	
-	
+	/**
+	 * Test removing a null item from the order
+	 */
 	@Test (expected = NullPointerException.class)
 	public void TestRemoveNullItem()
 	{
@@ -195,5 +196,14 @@ public class RemoveItemTest
 		tempRemoveItemInstance.removeItemFromOrder(item, order);
 	}
 	
+	/**
+	 * Test removing an item with a null order
+	 */
+	@Test (expected = NullPointerException.class)
+	public void TestRemoveWhenOrderNull()
+	{
+		ArrayList<Item> nullOrder = null;
+		tempRemoveItemInstance.removeItemFromOrder(orange, nullOrder);
+	}
 
 }

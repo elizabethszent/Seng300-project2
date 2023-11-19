@@ -13,10 +13,16 @@ import com.thelocalmarketplace.hardware.Product;
 import com.thelocalmarketplace.software.exceptions.OrderException;
 import com.jjjwelectronics.AbstractDevice;
 
+/**
+ * @author Elizabeth Szentmiklossy 	UCID: 30165216
+ * @author Jonathan Mulyk 			UCID: 30093143
+ * 
+ */
 
 
-import ca.ucalgary.seng300.simulation.SimulationException;
-
+/**
+ * Handles removing items from an order
+ */
 public class RemoveItem extends AbstractDevice<RemoveItemListener> implements ElectronicScaleListener
 {
 	
@@ -30,6 +36,13 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 		this.actionBlocker = blocker;
 	}
 	
+	/**
+	 * Constructor to create an instance of remove item
+	 * 
+	 * @param order - the items in the order, which should be in the bagging area
+	 * @param discrepancy - keeps track of weight discrepancy
+	 * @param blocker - instance allowing blocking customer interaction from a checkout station
+	 */
 	public RemoveItem(ArrayList<Item> order, WeightDiscrepancy discrepancy, ActionBlocker blocker)
 	{
 		this.order = order;
@@ -37,7 +50,12 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 		this.actionBlocker = blocker;
 	}
 
-
+	
+	/**
+	 * Notify listeners that an item has been removed from the order
+	 * 
+	 * @param item - the item that has been removed from the order
+	 */
 	public void itemHasBeenRemoved(Item item)
 	{
 		for(RemoveItemListener l : listeners())
@@ -97,10 +115,16 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 		//Expect the theMassOnTheScaleHasChanged to handle the new expected weight accordingly 
 		// for when the user removes the weight from the scale
 	}
-
+	
+	/**
+	 * Removes an item from an order 
+	 * 
+	 * @param itemToRemove - the item to remove from the order
+	 * @param order - the order that the item is to be removed from
+	 */
 	public void removeItemFromOrder(Item itemToRemove, ArrayList<Item> order)
 	{
-		if(itemToRemove == null)
+		if(itemToRemove == null || order == null)
 		{
 			throw new NullPointerException();
 		}
@@ -109,9 +133,11 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 		{
 			throw new OrderException();
 		}
-
+		
+		//block customer interaction
 		actionBlocker.blockInteraction();
 		
+		//check if the item is in the order
 		boolean itemFoundInOrder = false;
 		for(Item item : order)
 		{
@@ -125,13 +151,15 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 		if(!itemFoundInOrder)
 		{
 			throw new OrderException();
-			//item not found exception
 		}
 		
+		//remove item from the order
 		order.remove(itemToRemove);
-		actionBlocker.unblockInteraction();
+
+		//update expected weight here 
+
 		
-//		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(itemToRemove.getMass().inGrams()));
+		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(itemToRemove.getMass().inGrams()));
 		
 		/*
 		if(discrepancy.CompareWeight())
@@ -146,55 +174,44 @@ public class RemoveItem extends AbstractDevice<RemoveItemListener> implements El
 		
 		itemHasBeenRemoved(itemToRemove);
 		
+		//unblock customer interaction
+		actionBlocker.unblockInteraction();
 	}
 
 	
 	@Override
-	public void aDeviceHasBeenEnabled(IDevice<? extends IDeviceListener> device) {
-		// TODO Auto-generated method stub
-		
+	public void aDeviceHasBeenEnabled(IDevice<? extends IDeviceListener> device) 
+	{
 	}
 
 	@Override
-	public void aDeviceHasBeenDisabled(IDevice<? extends IDeviceListener> device) {
-		// TODO Auto-generated method stub
-		
+	public void aDeviceHasBeenDisabled(IDevice<? extends IDeviceListener> device) 
+	{
 	}
 
 	@Override
-	public void aDeviceHasBeenTurnedOn(IDevice<? extends IDeviceListener> device) {
-		// TODO Auto-generated method stub
-		
+	public void aDeviceHasBeenTurnedOn(IDevice<? extends IDeviceListener> device) 
+	{
 	}
 
 	@Override
-	public void aDeviceHasBeenTurnedOff(IDevice<? extends IDeviceListener> device) {
-		// TODO Auto-generated method stub
-		
+	public void aDeviceHasBeenTurnedOff(IDevice<? extends IDeviceListener> device) 
+	{
 	}
 
 	@Override
-	public void theMassOnTheScaleHasChanged(IElectronicScale scale, Mass mass) {
-		
-		//block self checkout station
-		//remove item from customer's order
-		//signals that removal was successful
-		//unblock
-
-		// TODO Auto-generated method stub
-		
+	public void theMassOnTheScaleHasChanged(IElectronicScale scale, Mass mass) 
+	{
 	}
 
 	@Override
-	public void theMassOnTheScaleHasExceededItsLimit(IElectronicScale scale) {
-		// TODO Auto-generated method stub
-		
+	public void theMassOnTheScaleHasExceededItsLimit(IElectronicScale scale) 
+	{
 	}
 
 	@Override
-	public void theMassOnTheScaleNoLongerExceedsItsLimit(IElectronicScale scale) {
-		// TODO Auto-generated method stub
-		
+	public void theMassOnTheScaleNoLongerExceedsItsLimit(IElectronicScale scale) 
+	{
 	}
 
 }
