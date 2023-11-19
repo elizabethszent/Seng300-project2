@@ -171,7 +171,7 @@ public class AddItemByBarcodeTest {
         StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
         electronicScale.addAnItem(item1); // use stub to simulate weight change
         addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, notInDatabaseBarcode);
-        Assert.assertTrue(blocker.isInteractionBlocked());
+        assertEquals(0, addItemByBarcode.getOrder().size());
     }
 
     /**
