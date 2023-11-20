@@ -15,6 +15,7 @@ import com.jjjwelectronics.scale.ElectronicScaleGold;
 import com.jjjwelectronics.scale.ElectronicScaleSilver;
 import com.jjjwelectronics.scanner.Barcode;
 import com.jjjwelectronics.scanner.BarcodeScannerBronze;
+import com.jjjwelectronics.scanner.BarcodeScannerGold;
 import com.jjjwelectronics.scanner.BarcodeScannerListener;
 import com.jjjwelectronics.scanner.BarcodedItem;
 import com.jjjwelectronics.scanner.IBarcodeScanner;
@@ -25,10 +26,14 @@ import com.thelocalmarketplace.software.ActionBlocker;
 import com.thelocalmarketplace.software.AddItemByBarcode;
 import com.thelocalmarketplace.software.WeightDiscrepancy;
 
+import ca.ucalgary.seng300.simulation.NullPointerSimulationException;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import powerutility.NoPowerException;
 import powerutility.PowerGrid;
 import com.thelocalmarketplace.hardware.external.ProductDatabases;
 
@@ -36,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -54,19 +60,20 @@ public class AddItemByBarcodeTest {
     /**
      * The order where products will be added.
      */
-    private ArrayList<Product> order;
+    private Map<Barcode, BarcodedProduct> order = new  HashMap<Barcode, BarcodedProduct>();
+    
+    
     /**
-     * The first barcode of the product to be added.
+     * Intialize the Barcodes
      */
-    private Barcode barcode1;
+    Numeral[] numeralArray1 = new Numeral[] {Numeral.zero, Numeral.one, Numeral.zero};
+    Numeral[] numeralArray2 = new Numeral[] {Numeral.zero, Numeral.one, Numeral.one};
+    private Barcode barcode1 = new Barcode(numeralArray1);
+    private Barcode barcode2 = new Barcode(numeralArray2);
     /**
      * The first BarcodedProduct object to be added to the order.
      */
     private BarcodedProduct barcodedProduct1;
-    /**
-     * The barcode of the second product to be added.
-     */
-    private Barcode barcode2;
     /**
      * The second BarcodedProduct object to be added to the order.
      */
@@ -86,14 +93,8 @@ public class AddItemByBarcodeTest {
     /**
      * The ElectronicScale object to get the actual weight.
      */
-
-    /**
-     * The database of products.
-     */
-    private Map<Barcode, BarcodedProduct> database;
     
-	private BarcodeScannerBronze barcodescanner;
-	private BarcodeScannerBronze handHeldScanner;
+	private BarcodeScannerGold barcodescanner;
 	private ElectronicScaleBronze electronicScale;
 	private BarcodedItem item1;
 	private BarcodedItem item2;
@@ -104,24 +105,17 @@ public class AddItemByBarcodeTest {
      */
     @Before
     public void SetUp() {
-        order = new ArrayList<>();
-        Numeral[] numeralArray1 = new Numeral[] {Numeral.zero, Numeral.one, Numeral.zero};
-        Numeral[] numeralArray2 = new Numeral[] {Numeral.zero, Numeral.one, Numeral.one};
-        barcode1 = new Barcode(numeralArray1);
-        barcode2 = new Barcode(numeralArray2);
         electronicScale = new ElectronicScaleBronze();
-        barcodedProduct1 = new BarcodedProduct(barcode1, "Apple", 50, 50);
+        barcodedProduct1 = new BarcodedProduct(barcode1, "Apple", 50, 5);
         barcodedProduct2 = new BarcodedProduct(barcode2, "Toast", 100, 100);
         expectedWeight = Mass.ZERO;
         discrepancy = new WeightDiscrepancy(expectedWeight, electronicScale);
         blocker = new ActionBlocker();
-        barcodescanner  = new BarcodeScannerBronze();
-        handHeldScanner = new BarcodeScannerBronze();
+        barcodescanner  = new BarcodeScannerGold();
         item1 = new BarcodedItem(barcode1, new Mass(barcodedProduct1.getExpectedWeight()));
         item2 = new BarcodedItem(barcode2, new Mass(barcodedProduct2.getExpectedWeight()));
-        addItemByBarcode = new AddItemByBarcode(barcodescanner, handHeldScanner, order, discrepancy, blocker, electronicScale);
+        addItemByBarcode = new AddItemByBarcode(barcodescanner, order, discrepancy, blocker, electronicScale);
         addItemByBarcode.register(discrepancy);
-        
         // add product to database
         ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode1, barcodedProduct1);
         ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode2, barcodedProduct2);
@@ -130,10 +124,7 @@ public class AddItemByBarcodeTest {
         try {
         	barcodescanner.plugIn(PowerGrid.instance());
         	barcodescanner.turnOn();
-        	handHeldScanner.plugIn(PowerGrid.instance());
-        	handHeldScanner.turnOn();
             this.electronicScale.plugIn(PowerGrid.instance());
-     
             this.electronicScale.turnOn();
             this.electronicScale.enable();
         } catch (Exception e) {
@@ -147,6 +138,7 @@ public class AddItemByBarcodeTest {
     public void tearDown() {
     	addItemByBarcode = null;
     	order = null;
+    	ProductDatabases.BARCODED_PRODUCT_DATABASE.clear();
     }
 
     /**
@@ -155,9 +147,8 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void addBarcodeToOrder() {
-        StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
         electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode1);
+        addItemByBarcode.scanBarcode(item1);
         assertEquals(1, addItemByBarcode.getOrder().size());
     }
 
@@ -169,9 +160,8 @@ public class AddItemByBarcodeTest {
     public void testProductNotFoundException() {
         Numeral[] numeralTest = {Numeral.one, Numeral.seven};
         Barcode notInDatabaseBarcode = new Barcode(numeralTest);
-        StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
-        electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, notInDatabaseBarcode);
+        BarcodedItem item = new BarcodedItem(notInDatabaseBarcode, new Mass(barcodedProduct1.getExpectedWeight()));
+        addItemByBarcode.scanBarcode(item);
         assertEquals(0, addItemByBarcode.getOrder().size());
     }
 
@@ -180,11 +170,9 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testGetExpectedWeight() {
-    	
         assertEquals(expectedWeight, addItemByBarcode.getExpectedWeight());
-        StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
         electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode1);
+        addItemByBarcode.scanBarcode(item1);
         assertEquals(new Mass(barcodedProduct1.getExpectedWeight()),addItemByBarcode.getExpectedWeight());
     }
 
@@ -193,9 +181,8 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testWrongWeight() {
-    	barcodescanner.disable();
+    	
         assertTrue(barcodescanner.isDisabled());
-      
     }
 
     /**
@@ -203,12 +190,11 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testAddBarcodedProductsToOrder() {
-        StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
         electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode1);
+        addItemByBarcode.scanBarcode(item1);
         assertEquals(1, addItemByBarcode.getOrder().size());
         electronicScale.addAnItem(item2); // use stub to simulate weight change
-        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode2);
+        addItemByBarcode.scanBarcode(item2);
         assertEquals(2, addItemByBarcode.getOrder().size());
     }
 
@@ -219,95 +205,12 @@ public class AddItemByBarcodeTest {
     @Test
     public void testTotalPrice() {
     	assertEquals(0.0, addItemByBarcode.getTotalPrice(), 0.01);
-    	StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
     	electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode1);
+        addItemByBarcode.scanBarcode(item1);
         assertEquals(50, addItemByBarcode.getTotalPrice(), 0.01);
         electronicScale.addAnItem(item2); // use stub to simulate weight change
-        addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode2);
+        addItemByBarcode.scanBarcode(item2);
         assertEquals(150, addItemByBarcode.getTotalPrice(), 0.01);
-    }
-    /**
-     * Stub class for simulating barcode scanning. This class simulates the behavior of a barcode scanner, allowing for testing of the AddItemByBarcode class.
-     */
-    static class StubBarcodeScanner implements IBarcodeScanner {
-
-        /**
-         * Indicates whether the barcode scanner is disabled.
-         */
-        private boolean disabled = false;
-        /**
-         * Indicates whether a barcode has been scanned.
-         */
-        private boolean barcodeScanned = false;
-
-        @Override
-        public void enable() {
-            disabled = false;
-        }
-
-        @Override
-        public void disable() {
-            disabled = true;
-        }
-
-        public boolean isDisabled() {
-            return disabled;
-        }
-
-        @Override
-        public List<BarcodeScannerListener> listeners( ) {
-            return null;
-        }
-
-        @Override
-        public boolean isPluggedIn( ) {
-            return false;
-        }
-
-        public boolean isPoweredUp() {
-            return true;
-        }
-
-        @Override
-        public void plugIn(PowerGrid grid) {
-        }
-
-        @Override
-        public void unplug( ) {
-        }
-
-        @Override
-        public void turnOn( ) {
-        }
-
-        @Override
-        public void turnOff( ) {
-        }
-
-        @Override
-        public boolean deregister(BarcodeScannerListener listener) {
-            return false;
-        }
-
-        @Override
-        public void deregisterAll( ) {
-        }
-
-        @Override
-        public void register(BarcodeScannerListener listener) {
-        }
-
-        /**
-         * Notifies the barcode scanner that a barcode has been scanned.
-         */
-        protected void notifyBarcodeScanned() {
-            barcodeScanned = true;
-        }
-        @Override
-        public void scan(BarcodedItem item) {
-            notifyBarcodeScanned();
-        }
     }
 
 }

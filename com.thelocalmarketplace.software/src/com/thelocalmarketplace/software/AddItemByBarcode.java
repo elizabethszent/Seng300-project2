@@ -14,10 +14,12 @@ import com.jjjwelectronics.OverloadedDevice;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
 import com.jjjwelectronics.scanner.Barcode;
 import com.jjjwelectronics.scanner.BarcodeScannerListener;
+import com.jjjwelectronics.scanner.BarcodedItem;
 import com.jjjwelectronics.scanner.IBarcodeScanner;
 import com.thelocalmarketplace.hardware.BarcodedProduct;
 import com.thelocalmarketplace.hardware.Product;
 import com.thelocalmarketplace.hardware.external.ProductDatabases;
+import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -36,7 +38,7 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     /**
      * The order where products will be added.
      */
-    private ArrayList<Product> order;
+    private Map<Barcode, BarcodedProduct> order;
     
     /**
      * Variable to keep track of total cost of the order
@@ -63,11 +65,12 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     /**
      * Main barcode scanner
      */
-    private IBarcodeScanner MainScanner;
+    private IBarcodeScanner scanner;
+    
     /**
-     * Barcode Scanner for the hand held scanner
+     * Variable to check whether aBarcodeHasBeenScanned
      */
-    private IBarcodeScanner handheldScanner;
+    private boolean beenCalled;
     /**
      * Constructs an AddItemByBarcode object with the expected weight, order, WeightDiscrepancy object, ActionBlocker object, ElectronicScale object, and database.
      *
@@ -79,23 +82,31 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param database       The database of products.
      */
 
-    public AddItemByBarcode(IBarcodeScanner MainScanner, IBarcodeScanner handheldScanner, ArrayList<Product> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
+    public AddItemByBarcode(IBarcodeScanner scanner, Map<Barcode, BarcodedProduct> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
         this.order = order;
         this.actionBlocker = blocker;
         this.scale = scale;
         this.discrepancy = discrepancy;
-        this.MainScanner = MainScanner;
-        this.handheldScanner = handheldScanner;
+        this.scanner = scanner;
         this.database = ProductDatabases.BARCODED_PRODUCT_DATABASE;
         this.totalPrice = 0.0;
         discrepancy.register(this);
-        
+        this.scanner.register(this);
     }
     
     public void ItemHasBeenAdded(Product product){
     	for(AddItemListner l : listeners()){
 			l.ItemHasBeenAdded(product);
 			}
+    }
+    
+    
+    public void scanBarcode(BarcodedItem item) {
+    	while (!beenCalled) {
+    		this.scanner.enable();
+    		this.scanner.scan(item);
+    	}
+    	beenCalled = false;
     }
 
     /**
@@ -104,43 +115,38 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param barcodeScanner The barcode scanner.
      * @param barcode        The scanned barcode.
      */
+    @Override
     public void aBarcodeHasBeenScanned(IBarcodeScanner barcodeScanner, Barcode barcode) {
         // Check if state is satisfying the precondition: The system is ready to accept customer input.
-
-     
-            // Add gui to block customer interaction
-        	
-            actionBlocker.blockInteraction();
-            System.out.println("Checking barcode...");
-            try {
-            BarcodedProduct product = getProductByBarcode(barcode);
-            totalPrice = totalPrice + product.getPrice();
-            addBarcodedProductToOrder(product, order, barcodeScanner);
-            ItemHasBeenAdded(product);
-        }
-            catch (ProductNotFoundException e){
-            }
-            
-            // implement GUI saying to add to bagging area
-            
-            System.out.println("Item added.\nPlease add item to bagging area.\nWaiting...");
-            //  Compare actual vs expected weights to check for any discrepancies (also checks if item is in bagging area)
-            actionBlocker.unblockInteraction();  
+    			// Add gui to block customer interaction
+                actionBlocker.blockInteraction();
+                System.out.println("Checking barcode...");
+                try {
+                	BarcodedProduct product = getProductByBarcode(barcode);
+                	totalPrice = totalPrice + product.getPrice();
+                	addBarcodedProductToOrder(product, order, barcodeScanner);
+                	ItemHasBeenAdded(product);
+                }
+                catch (ProductNotFoundException e){
+                }
+                
+                beenCalled = true;
+                System.out.println("Item added.\nPlease add item to bagging area.\nWaiting...");
+                //  Compare actual vs expected weights to check for any discrepancies (also checks if item is in bagging area)
+                actionBlocker.unblockInteraction();
         }
     
     
 	@Override
 	public void WeightDiscrancyOccurs() {
 		actionBlocker.blockInteraction();
-		MainScanner.disable();
-		handheldScanner.disable();
+		scanner.disable();
 	}
 
 	@Override
 	public void WeightDiscrancyResolved() {
 		actionBlocker.unblockInteraction();  
-		MainScanner.enable();
-		handheldScanner.enable();
+		scanner.enable();
 	}
 
 
@@ -177,11 +183,16 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      *
      * @return The list of products in the current order.
      */
-    public ArrayList<Product> getOrder( ) {
+    public Map<Barcode, BarcodedProduct> getOrder( ) {
         return order;
     }
-
-
+    
+    /**
+     * Method that returns whether the scanner can scan
+     */
+    public boolean readyToScan() {
+    	return actionBlocker.isInteractionBlocked() && discrepancy.CompareWeight();
+    }
 
     /**
      * Adds a barcoded product to the order and updates the expected weight.
@@ -190,8 +201,8 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param order         The order where products will be added.
      * @param barcodeScanner The barcode scanner.
      */
-    private void addBarcodedProductToOrder(BarcodedProduct product, ArrayList<Product> order, IBarcodeScanner barcodeScanner) {
-        order.add(product);
+    private void addBarcodedProductToOrder(BarcodedProduct product, Map<Barcode, BarcodedProduct> order, IBarcodeScanner barcodeScanner) {
+        order.put(product.getBarcode(), product);
         if(discrepancy.CompareWeight()) {
             barcodeScanner.enable();
         } else {
