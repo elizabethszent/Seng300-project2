@@ -74,6 +74,8 @@ public class PayViaBanknoteTest {
 	// Testing return Change
 	@Test
 	public void testReturnChange() throws CashOverloadException, DisabledException{		
+		insertionSlot.connect(grid);
+		insertionSlot.enable();
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(20)); 
 		payViaBanknote.makePayment(banknote);
 		payViaBanknote.returnChange();		
