@@ -17,9 +17,10 @@ import java.util.Arrays;
  *
  */
 public class PayViaCreditSwipe implements CardReaderListener {
-    CardIssuer issuer;
     ArrayList<String> creditTypes = new ArrayList<String>(Arrays.asList("Visa", "Mastercard"));
+    CardIssuer issuer;
     BigDecimal amountDue;
+    
     // TODO: when main is created, add it as a field here so the 
     // amount due can be modified when payment occurs
 
@@ -29,13 +30,17 @@ public class PayViaCreditSwipe implements CardReaderListener {
     // Once payment is made, we can do something like:
     // control.setAmountDue(new BigDecimal(0));
     
-    public PayViaCreditSwipe(CardIssuer issuer, AbstractSelfCheckoutStation station, 
-    		BigDecimal amountDue, Session session
+    public PayViaCreditSwipe(CardIssuer issuer, BigDecimal amountDue
+    		
+    		// TODO: when main is created pass it through the constructor like this:
     		// MainSoftware control
+    		
     		) {
-    	super();
+    	
         this.issuer = issuer;
         this.amountDue = amountDue;
+        
+        // TODO: set the main software control to the control field:
         // this.control = control;
     }
 
@@ -58,6 +63,7 @@ public class PayViaCreditSwipe implements CardReaderListener {
             issuer.releaseHold(cardNumber, holdNumber);
             
             if (success) {
+            	
             	// TODO: when main is created, add the line:
             	// control.setAmountDue(new BigDecimal(0));
             	
@@ -65,7 +71,9 @@ public class PayViaCreditSwipe implements CardReaderListener {
                 
             	// TODO: when print receipt is implemented do that here:
             	// control.receiptPrinter.printReceipt();
-            }
+                
+            } else
+            	System.out.println("The payment was not succesful");
     	}
     }
     
