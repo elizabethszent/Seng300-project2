@@ -51,6 +51,29 @@ public class PrintReceiptTest {
         printReceipt.formatReceiptContent(null, BigDecimal.ZERO);
     }
 
+    /**
+     * Test case to verify receipt formatting with a list containing products with negative prices.
+     */
+    @Test
+    public void testReceiptFormattingWithNegativePriceProducts() {
+        PrintReceipt printReceipt = new PrintReceipt(null);
+        List<Product> products = createSampleProductListWithNegativePrice();
+        BigDecimal totalAmount = BigDecimal.valueOf(-1.51); // Example total with negative value
+
+        List<String> formattedReceipt = printReceipt.formatReceiptContent(products, totalAmount);
+        assertFalse("Receipt content should not be empty", formattedReceipt.isEmpty());
+        assertTrue("Receipt should list products with negative prices", formattedReceipt.stream().anyMatch(s -> s.contains("-")));
+        assertTrue("Receipt should show a negative total amount", formattedReceipt.stream().anyMatch(s -> s.contains("Total: -$1.51")));
+    }
+
+    // Utility method to create a sample list of products with a negative price
+    private List<Product> createSampleProductListWithNegativePrice() {
+        List<Product> products = new ArrayList<>();
+        products.add(new Product("Refund", BigDecimal.valueOf(-0.99)));
+        products.add(new Product("Discount", BigDecimal.valueOf(-0.52)));
+        return products;
+    }
+
     // Utility method to create a sample list of products
     private List<Product> createSampleProductList() {
         List<Product> products = new ArrayList<>();
