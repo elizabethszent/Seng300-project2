@@ -8,6 +8,8 @@ package com.thelocalmarketplace.software;
 import com.jjjwelectronics.AbstractDevice;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
+import com.jjjwelectronics.scale.AbstractElectronicScale;
+import com.jjjwelectronics.scanner.AbstractBarcodeScanner;
 import com.tdc.AbstractComponent;
 import com.tdc.IComponent;
 
@@ -66,7 +68,6 @@ public class Session implements WeightDiscrepancyListner {
 
 	public void startSession() {
 		if (status == 0) {
-			status = 1;
 			unfreezeSession();
 		}
 	}
@@ -74,7 +75,9 @@ public class Session implements WeightDiscrepancyListner {
 	public void freezeSession() {
 		status = 2;
 		for (IDevice device : hardwareDevices) {
-			device.disable();
+			if (!(device instanceof AbstractElectronicScale)) {
+				device.disable();
+			}
 		}
 		for (IComponent component : hardwareComponents) {
 			component.disable();
