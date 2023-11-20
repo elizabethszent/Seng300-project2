@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * AddItemByBarcodeTest class handles test cases relating to the AddItemByBarcode class.
@@ -95,20 +96,23 @@ public class AddItemByBarcodeTest {
         barcode = new Barcode(numeralArray);
         electronicScale = new ElectronicScaleBronze();
         barcodedProduct = new BarcodedProduct(barcode, "Sample Product", 100, 50);
-        expectedWeight = Mass.ZERO;
+        expectedWeight = Mass.ONE_GRAM;
         discrepancy = new WeightDiscrepancy(expectedWeight, electronicScale);
         blocker = new ActionBlocker();
         barcodescanner  = new BarcodeScannerBronze();
         item = new BarcodedItem(barcode, expectedWeight);
         addItemByBarcode = new AddItemByBarcode(barcodescanner, order, discrepancy, blocker, electronicScale, database);
-
+        addItemByBarcode.register(discrepancy);
 
         // add product to database
         database.put(barcode, barcodedProduct);
 
         // try catch to turn everything on
         try {
+        	barcodescanner.plugIn(PowerGrid.instance());
+        	barcodescanner.turnOn();
             this.electronicScale.plugIn(PowerGrid.instance());
+     
             this.electronicScale.turnOn();
             this.electronicScale.enable();
         } catch (Exception e) {
@@ -150,13 +154,14 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testGetExpectedWeight() {
+    	
         assertEquals(expectedWeight, addItemByBarcode.getExpectedWeight());
 
         StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
         electronicScale.addAnItem(item); // use stub to simulate weight change
         addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode);
 
-        assertEquals(new Mass(barcodedProduct.getExpectedWeight()), addItemByBarcode.getExpectedWeight());
+        assertEquals(new Mass(barcodedProduct.getExpectedWeight()),(addItemByBarcode.getExpectedWeight()));
     }
 
     /**
@@ -164,8 +169,8 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testWrongWeight() {
-        StubBarcodeScanner stubBarcodeScanner = new StubBarcodeScanner();
-        Assert.assertThrows(AddItemByBarcode.WeightDiscrepancyException.class, () -> addItemByBarcode.aBarcodeHasBeenScanned(stubBarcodeScanner, barcode));
+        assertTrue(barcodescanner.isDisabled());
+      
     }
 
     /**

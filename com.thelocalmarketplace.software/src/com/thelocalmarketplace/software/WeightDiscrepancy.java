@@ -9,6 +9,7 @@ import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.OverloadedDevice;
+import com.jjjwelectronics.Mass.MassDifference;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
 import com.jjjwelectronics.scale.ElectronicScaleListener;
 import com.jjjwelectronics.scale.IElectronicScale;
@@ -27,6 +28,7 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	// Fields to store the expected and actual weights.
 	Mass expectedWeight;
 	Mass actualWeight;
+	Mass Sensetivity;
 	/**
 	 * Constructor for WeightDiscrepancy class
 	 * 
@@ -36,6 +38,7 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	public WeightDiscrepancy(Mass eWeight, AbstractElectronicScale listner ){
 		 // Initialize the expected weight with the provided value
 		expectedWeight = eWeight;
+		Sensetivity = listner.getSensitivityLimit();
 		try {
 			// Attempt to get the current mass on the scale from the provided listener.
 			actualWeight = listner.getCurrentMassOnTheScale();
@@ -56,6 +59,8 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	public void ItemHasBeenAdded(Product product) {
 	    Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
 		expectedWeight = expectedWeight.sum(weightOfProduct); 
+		CompareWeight();
+		WeightDescrepancyEvent();
 		
 	}
 	/**
@@ -64,7 +69,8 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
      * @return True if the expected and actual weights are equal, false otherwise.
      */
 	public boolean CompareWeight() {
-	if (expectedWeight.compareTo(actualWeight)== 0){
+		MassDifference difference = actualWeight.difference(expectedWeight);		
+		if(difference.compareTo(Sensetivity) <= 0) {
 		return true;
 	}
 		return false;
@@ -79,7 +85,14 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	
 	@Override
 	public void theMassOnTheScaleHasChanged(IElectronicScale scale, Mass mass) {
+		Sensetivity = scale.getSensitivityLimit();
 		actualWeight = mass;
+		WeightDescrepancyEvent();
+		
+		
+	}
+	
+	public void WeightDescrepancyEvent() {
 		
 		for(WeightDiscrepancyListner l : listeners()) {
 			if (CompareWeight()==false){
