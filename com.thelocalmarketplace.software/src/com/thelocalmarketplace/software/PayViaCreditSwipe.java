@@ -24,7 +24,7 @@ public class PayViaCreditSwipe implements CardReaderListener {
     // TODO: when main is created, add it as a field here so the 
     // amount due can be modified when payment occurs
 
-    // Ex: 
+    // Example: 
     // MainSoftware control;
  
     // Once payment is made, we can do something like:
@@ -67,6 +67,7 @@ public class PayViaCreditSwipe implements CardReaderListener {
             	// TODO: when main is created, add the line:
             	// control.setAmountDue(new BigDecimal(0));
             	
+            	this.amountDue = new BigDecimal(0);
                 System.out.println("New amount due: 0");
                 
             	// TODO: when print receipt is implemented do that here:
@@ -75,6 +76,10 @@ public class PayViaCreditSwipe implements CardReaderListener {
             } else
             	System.out.println("The payment was not succesful");
     	}
+    }
+    
+    public BigDecimal getAmountDue() {
+    	return amountDue;
     }
     
     @Override
