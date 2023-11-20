@@ -20,7 +20,7 @@ import com.jjjwelectronics.scanner.BarcodedItem;
 import com.thelocalmarketplace.hardware.PLUCodedItem;
 import com.thelocalmarketplace.hardware.PriceLookUpCode;
 import com.thelocalmarketplace.software.ActionBlocker;
-import com.thelocalmarketplace.software.RemoveItem;
+import com.thelocalmarketplace.software.ItemController;
 import com.thelocalmarketplace.software.WeightDiscrepancy;
 import com.thelocalmarketplace.software.exceptions.OrderException;
 import com.jjjwelectronics.Mass;
@@ -32,6 +32,7 @@ import powerutility.PowerGrid;
 
 public class RemoveItemTest 
 {
+    ItemController tempItemControllerInstance;
 	ElectronicScaleGold goldScale;
 	ElectronicScaleSilver silverScale;
 	ElectronicScaleBronze bronzeScale;
@@ -41,15 +42,16 @@ public class RemoveItemTest
 	BarcodedItem shampoo;
 
     HashMap<Item, Integer> cart = new HashMap<Item, Integer>();
-    RemoveItem tempRemoveItemInstance;
     
     int cartSize;
     
     
-	ArrayList<Item> order;
+	HashMap<Item, Integer> order;
 	WeightDiscrepancy discrepancy;
 	ActionBlocker actionBlocker;
 	int orderSize;
+	int numOrangesInOrder;
+	int numShampooInOrder;
 	Mass massOfOrder;
 	
 	/*
@@ -101,21 +103,25 @@ public class RemoveItemTest
 		
 		this.cartSize = cart.size();
 		
-		this.order = new ArrayList<Item>();
-		this.order.add(orange);
-		this.order.add(shampoo);
-		this.orderSize = this.order.size();
+		this.order = new HashMap<Item, Integer>();
+		this.order.put(orange,2);
+		this.order.put(shampoo,3);
+		
+		this.orderSize = 5;
+		this.numOrangesInOrder = 2;
+		this.numShampooInOrder = 3;
 		
 		this.massOfOrder = orange.getMass().sum(shampoo.getMass());
 
 		//add 700 grams of weight to account for small weight difference factors
 //		this.massOfOrder = this.massOfOrder.sum(new Mass(700000000));
+		this.massOfOrder = this.massOfOrder.sum(new Mass(2100000000));
 		
 		this.actionBlocker = new ActionBlocker();
 		this.discrepancy = new WeightDiscrepancy(this.massOfOrder, bronzeScale);
-		this.tempRemoveItemInstance = new RemoveItem(this.order, this.discrepancy, this.actionBlocker);
+		this.tempItemControllerInstance = new ItemController(this.order, this.discrepancy, this.actionBlocker);
 //		this.tempRemoveItemInstance = new RemoveItem(this.order, this.actionBlocker);
-		this.tempRemoveItemInstance.register(discrepancy);
+		this.tempItemControllerInstance.register(discrepancy);
 		
 		bronzeScale.addAnItem(orange);
 		bronzeScale.addAnItem(shampoo);
@@ -132,8 +138,10 @@ public class RemoveItemTest
 	@Test
 	public void TestRemovePLUCodedItem()
 	{
-		tempRemoveItemInstance.removeItemFromOrder(orange, order);
-		assertEquals(this.orderSize - 1, this.order.size());
+		tempItemControllerInstance.removeItemFromOrder(orange, 1, order);
+
+		assertEquals(this.orderSize - 1, tempItemControllerInstance.getTotalAmountOfItemsFromOrder(order));
+		assertEquals(this.numOrangesInOrder - 1, tempItemControllerInstance.getAmountOfItemInOrder(orange, order));
 	}
 	
 	/**
@@ -142,8 +150,11 @@ public class RemoveItemTest
 	@Test
 	public void TestRemoveBarcodedItem()
 	{
-		tempRemoveItemInstance.removeItemFromOrder(shampoo, order);
-		assertEquals(this.orderSize - 1, this.order.size());
+		tempItemControllerInstance.removeItemFromOrder(shampoo, 1, order);
+
+		assertEquals(this.orderSize - 1, tempItemControllerInstance.getTotalAmountOfItemsFromOrder(order));
+		assertEquals(this.numShampooInOrder - 1, tempItemControllerInstance.getAmountOfItemInOrder(shampoo, order));
+
 	}
 
 	/**
@@ -152,10 +163,34 @@ public class RemoveItemTest
 	@Test
 	public void TestRemoveMultipleItems()
 	{
-		tempRemoveItemInstance.removeItemFromOrder(orange, order);
-		tempRemoveItemInstance.removeItemFromOrder(shampoo, order);
-		assertEquals(this.orderSize - 2, this.order.size());
+		tempItemControllerInstance.removeItemFromOrder(shampoo, 2, order);
+		assertEquals(this.orderSize - 2, tempItemControllerInstance.getTotalAmountOfItemsFromOrder(order));
+		assertEquals(this.numShampooInOrder - 2, tempItemControllerInstance.getAmountOfItemInOrder(shampoo, order));
 	}
+
+	/**
+	 * Test removing an item completely from the order
+	 */
+	@Test
+	public void TestCompletelyRemoveItemFromOrder()
+	{
+		tempItemControllerInstance.removeItemFromOrder(shampoo, 3, order);
+		assertEquals(this.orderSize - 3, tempItemControllerInstance.getTotalAmountOfItemsFromOrder(order));
+		assertEquals(this.numShampooInOrder - 3, tempItemControllerInstance.getAmountOfItemInOrder(shampoo, order));
+	}
+
+	/**
+	 * Test removing an amount that is greater than the number of items in an order
+	 * expecting this to just remove all of the items from the order
+	 */
+	@Test
+	public void TestRemoveMoreThanAnItemHasFromOrder()
+	{
+		tempItemControllerInstance.removeItemFromOrder(shampoo, 100, order);
+		assertEquals(this.orderSize - 3, tempItemControllerInstance.getTotalAmountOfItemsFromOrder(order));
+		assertEquals(this.numShampooInOrder - 3, tempItemControllerInstance.getAmountOfItemInOrder(shampoo, order));
+	}
+	
 	
 	/**
 	 * Test removing an item that is not in the order
@@ -167,7 +202,7 @@ public class RemoveItemTest
 		PriceLookUpCode applePLUCode = new PriceLookUpCode("0132");
 		PLUCodedItem apple = new PLUCodedItem(applePLUCode, appleMass);
 
-		tempRemoveItemInstance.removeItemFromOrder(apple, order);
+		tempItemControllerInstance.removeItemFromOrder(apple, 1, order);
 		assertEquals(this.orderSize - 1, 0);
 	}
 	
@@ -181,9 +216,9 @@ public class RemoveItemTest
 		PriceLookUpCode applePLUCode = new PriceLookUpCode("0132");
 		PLUCodedItem apple = new PLUCodedItem(applePLUCode, appleMass);
 
-		tempRemoveItemInstance.removeItemFromOrder(orange, order);
-		tempRemoveItemInstance.removeItemFromOrder(shampoo, order);
-		tempRemoveItemInstance.removeItemFromOrder(apple, order);
+		tempItemControllerInstance.removeItemFromOrder(orange, 1, order);
+		tempItemControllerInstance.removeItemFromOrder(shampoo, 1, order);
+		tempItemControllerInstance.removeItemFromOrder(apple, 1, order);
 	}
 	
 	/**
@@ -193,7 +228,7 @@ public class RemoveItemTest
 	public void TestRemoveNullItem()
 	{
 		Item item = null;
-		tempRemoveItemInstance.removeItemFromOrder(item, order);
+		tempItemControllerInstance.removeItemFromOrder(item, 1, order);
 	}
 	
 	/**
@@ -202,8 +237,8 @@ public class RemoveItemTest
 	@Test (expected = NullPointerException.class)
 	public void TestRemoveWhenOrderNull()
 	{
-		ArrayList<Item> nullOrder = null;
-		tempRemoveItemInstance.removeItemFromOrder(orange, nullOrder);
+		HashMap<Item,Integer> nullOrder = null;
+		tempItemControllerInstance.removeItemFromOrder(orange, 1, nullOrder);
 	}
 
 }

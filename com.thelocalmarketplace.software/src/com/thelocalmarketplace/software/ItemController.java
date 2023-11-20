@@ -86,6 +86,13 @@ public final class ItemController extends AbstractDevice<ItemControllerListener>
      * @param scale          The ElectronicScale object to get the actual weight.
      * @param database       The database of products.
      */
+    
+    public ItemController(HashMap<Item, Integer> order, WeightDiscrepancy discrepancy, ActionBlocker blocker)
+    {
+    	this.order = order;
+    	this.actionBlocker = blocker;
+    	this.discrepancy = discrepancy;
+    }
 
     public ItemController(IBarcodeScanner scanner, HashMap<Item, Integer> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
         this.order = order;
@@ -198,6 +205,53 @@ public final class ItemController extends AbstractDevice<ItemControllerListener>
     }
     
     /**
+     * Returns the total amount of items that are in the order
+     * 
+     * @param order - the order to check
+     * @return - the total amount of items that are in the order
+     */
+    public int getTotalAmountOfItemsFromOrder(HashMap<Item, Integer> order)
+    {
+    	if(order == null)
+    	{
+    		throw new NullPointerException();
+    	}
+    	
+    	int sum = 0;
+    	for(int amount : order.values())
+    	{
+    		sum += amount;
+    	}
+
+    	return sum;
+    }
+    
+    /**
+     * Returns the amount of 1 particular item in the order
+     * if the item is not in the order, returns 0
+     * 
+     * @param item - item to check the amount of in the order
+     * @param order - order to check from
+     * @return - the number of a particular item. If the item is not in the order 0
+     */
+    public int getAmountOfItemInOrder(Item item, HashMap<Item, Integer> order)
+    {
+    	if(order == null || item == null)
+    	{
+    		throw new NullPointerException();
+    	}
+    	
+    	//if the item is no in the order, return 0
+    	if(!order.containsKey(item))
+    	{
+    		return 0;
+    	}
+    	
+    	return order.get(item);
+    }
+
+    
+    /**
      * Method that returns whether the scanner can scan
      */
     public boolean readyToScan() {
@@ -239,12 +293,12 @@ public final class ItemController extends AbstractDevice<ItemControllerListener>
 	 */
 	public void removeItemFromOrder(Item item, int amount, HashMap<Item, Integer> order)
 	{
-		if(item == null || order.get(item) == null || order == null)
+		if(item == null || order == null)
 		{
 			throw new NullPointerException();
 		}
-		
-		if(order.size() <= 0)
+	
+		if(order.size() <= 0 || order.get(item) == null)
 		{
 			throw new OrderException();
 		}
@@ -254,28 +308,29 @@ public final class ItemController extends AbstractDevice<ItemControllerListener>
 		
 		
 		int itemAmount = order.get(item);
-		int amountAfterRemoving = amount - itemAmount;
+		int amountAfterRemoving = itemAmount - amount;
+		int actualRemovalAmount = 0;
+		
 
 		//if it's the only item in the cart, remove all instances of that item (case of equal to 1)
 		//if it's 0 or less, then the amount to remove exceeded the amount in the cart, so we can still remove
 		//that item from the cart
-		if(amountAfterRemoving <= 1)
+		if(amountAfterRemoving <= 0)
 		{
 			order.remove(item);
+			actualRemovalAmount = itemAmount;
 		}
 		//if there are more than one of that item in the cart than we're removing, decrement the amount by that much
 		else
 		{
 			order.put(item, amountAfterRemoving);
+			actualRemovalAmount = amount;
 		}
 		
-		
-		
-		BigDecimal removalWeightBD = item.getMass().inGrams().multiply(new BigDecimal(itemAmount));
+		BigDecimal removalWeightBD = item.getMass().inGrams().multiply(new BigDecimal(actualRemovalAmount));
 		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(removalWeightBD));
 
-
-		itemHasBeenRemoved(item, amount);
+		itemHasBeenRemoved(item, actualRemovalAmount);
 
 		actionBlocker.unblockInteraction();
 	}
