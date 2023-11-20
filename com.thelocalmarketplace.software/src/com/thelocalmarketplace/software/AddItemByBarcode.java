@@ -131,12 +131,14 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     
 	@Override
 	public void WeightDiscrancyOccurs() {
+		actionBlocker.blockInteraction();
 		MainScanner.disable();
 		handheldScanner.disable();
 	}
 
 	@Override
 	public void WeightDiscrancyResolved() {
+		actionBlocker.unblockInteraction();  
 		MainScanner.enable();
 		handheldScanner.enable();
 	}
@@ -190,10 +192,6 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      */
     private void addBarcodedProductToOrder(BarcodedProduct product, ArrayList<Product> order, IBarcodeScanner barcodeScanner) {
         order.add(product);
-
-        Mass weightOfProduct = new Mass(product.getExpectedWeight());
-        discrepancy.expectedWeight = discrepancy.expectedWeight.sum(weightOfProduct);
-
         if(discrepancy.CompareWeight()) {
             barcodeScanner.enable();
         } else {
