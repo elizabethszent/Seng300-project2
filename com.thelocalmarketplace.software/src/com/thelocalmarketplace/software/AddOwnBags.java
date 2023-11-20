@@ -20,29 +20,18 @@ import powerutility.NoPowerException;
  */
 public class AddOwnBags extends AbstractDevice<WeightDiscrepancyListner> implements ElectronicScaleListener{
 	Mass bagWeight;
-	Mass expectedWeight;
-	Mass actualWeight;
 	boolean addOwnBagsSelection;
 	boolean	testSentinel;
 	Mass bagLimit = new Mass(BigInteger.valueOf(500 * Mass.MICROGRAMS_PER_GRAM)); // limit for the bag is 500g
-	public AddOwnBags(Mass bagWeight, Mass expectedWeight,boolean addOwnBagsSelection,  AbstractElectronicScale listner) {
+	public AddOwnBags(Mass bagWeight, boolean addOwnBagsSelection, WeightDiscrepancyListner wListner, AbstractElectronicScale listner) {
 		this.addOwnBagsSelection = addOwnBagsSelection;
 		if(addOwnBagsSelection) {
 		// Initializing the bag weight, if the add own bags is selected.
 		this.bagWeight = bagWeight;
-		}
-		// See if the added bag make the actual weight overloaded
-		try {
-			// Attempt to get the current mass on the scale from the provided listener.
-			actualWeight = listner.getCurrentMassOnTheScale();
-		} catch (NoPowerException e) {
-			 // Handle the case where there is a NoPowerException.
-			actualWeight = Mass.ZERO;
-		}
-		catch (OverloadedDevice e) {
-			 // Handle the case where there is a OverloadedDevice exception.
-			actualWeight = Mass.ZERO;
-			
+		this.bagWeightOverloaded();
+		this.userChoice();
+		}else {
+			this.bagWeight = Mass.ZERO;
 		}
 		// register the class into listener 
 		listner.register(this);
