@@ -98,10 +98,11 @@ public class PayViaBanknote implements BanknoteValidatorObserver {
 	        for (int i = 0; i < requiredBanknotes.intValue(); i++) {
 	            try {
 	                banknoteDispenser.emit();
+	                dispensationSlot.dispense();
 	                change = change.subtract(exactChange);
 	            } catch (NoCashAvailableException e) {
-	      
-	                break;
+	            	System.out.println("No Cash Available" );
+	                banknoteDispenser.disable();
 	            }
 	            }
 	        }

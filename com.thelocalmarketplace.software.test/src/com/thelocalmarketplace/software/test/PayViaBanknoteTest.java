@@ -33,6 +33,8 @@ public class PayViaBanknoteTest {
 	private BanknoteInsertionSlot insertionSlot;
 	private List<Map.Entry<BigDecimal, AbstractBanknoteDispenser>> dispenserList;
 	private PowerGrid grid;
+	private AbstractBanknoteDispenser dispenser;
+
 	
 	// Stub class implementing Sink<T> interface.
 	class mysink implements Sink<Banknote> {
@@ -65,7 +67,7 @@ public class PayViaBanknoteTest {
 		dispensationSlot = new BanknoteDispensationSlot();
 		insertionSlot = new BanknoteInsertionSlot();
 		dispenserList = new ArrayList<>();
-		AbstractBanknoteDispenser dispenser = new BanknoteDispenserBronze();
+		dispenser = new BanknoteDispenserBronze();
 		dispenser.sink = new mysink();
 		
 		// Connecting components to a powerGrid.
@@ -91,37 +93,58 @@ public class PayViaBanknoteTest {
 		payViaBanknote = new PayViaBanknote(amountOwed, dispensationSlot, insertionSlot, dispenserList);
 		
 	}
-		
 	
-	//Test for when payment is complete
+	/**
+	* Test cases for makePayment(Banknote)
+	* Tests for when payment is succesfull(full amount paid), unsuccesful(full amount not paid) 
+	* and when the banknote is dangling (is rejected or not rejected by Insertionslot).
+	*/
+	
 	@Test
 	public void testPaymentSuccesful() throws DisabledException, CashOverloadException {
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.TEN); 
         assertTrue(payViaBanknote.makePayment(banknote));
       
 	}
-	
-	// Test for when payment is not complete (Not paid in full)
+
 	@Test
 	public void testPaymentUnsuccesful() throws DisabledException, CashOverloadException {
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(5)); 
         assertEquals(false,payViaBanknote.makePayment(banknote));	//makepayment() will return false as payment is not complete	
 	}
-	
-	// Testing return Change
 	@Test
-	public void testReturnChange() throws CashOverloadException, DisabledException{		
+	public void testdanglingnotes() throws DisabledException, CashOverloadException{
+		Banknote banknotedangling = new Banknote( Currency.getInstance("CAD"),BigDecimal.TEN); 
+		insertionSlot.emit(banknotedangling);
+		assertEquals(false,payViaBanknote.makePayment(banknotedangling));
+			
+	}
+	
+	
+	
+	/**
+	* Test cases for returnChange();
+	* Tests when change is succesfully returned and when there is not enough banknotes hence not returned.
+	* 
+	*/
+	@Test
+	public void testReturnChangeSuccesful() throws CashOverloadException, DisabledException{		
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(20)); 
 		payViaBanknote.makePayment(banknote);
 		payViaBanknote.returnChange();
+		assertEquals(0, dispenser.size());
 	}
 	
 	@Test 
-	public void testReturnChange2() throws CashOverloadException, DisabledException{
+	public void testReturnChangeUnsuccesful() throws CashOverloadException, DisabledException{
+		dispenserList.clear();
+		dispenser.unload();
+		dispenserList.add(Map.entry(BigDecimal.TEN, dispenser));
+		
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(20)); 
 		payViaBanknote.makePayment(banknote);		
-		payViaBanknote.returnChange();	
-	
+		payViaBanknote.returnChange();			
+		assertTrue(dispenser.isDisabled());
 
 	}
 	
