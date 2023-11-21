@@ -182,7 +182,7 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testWrongWeight() {
-    	
+        electronicScale.addAnItem(item2);
         assertTrue(barcodescanner.isDisabled());
     }
 
