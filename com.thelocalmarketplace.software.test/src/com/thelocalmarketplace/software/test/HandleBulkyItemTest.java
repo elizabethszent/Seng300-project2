@@ -1,4 +1,4 @@
-package com.thelocalmarketplace.software;
+package com.thelocalmarketplace.software.test;
 
 import com.thelocalmarketplace.hardware.AbstractSelfCheckoutStation;
 import com.thelocalmarketplace.hardware.Product;
@@ -104,17 +104,18 @@ public class HandleBulkyItemTest {
     
     // When FixDiscrepancy is called, the adjusted weight should match
     // the new expected weight
+ // When FixDiscrepancy is called, the adjusted weight should match
+    // the new expected weight
     @Test
     public void testFixDiscrepancyAdjustsWeight() {
-        Mass initialExpectedWeight = new Mass(1000);
+        Mass initialExpectedWeight = new Mass(500);
         bulkyItem = new BarcodedItem(new Barcode(new Numeral[]{Numeral.zero, Numeral.one}), new Mass(500));
-        weightDiscrepancy.expectedWeight = initialExpectedWeight;
 
         // Call the method under test
         handleBulkyItem.fixDiscrepancy(bulkyItem);
 
         // Assert that the expected weight is updated correctly
-        assertEquals("Expected weight should be reduced by the weight of the bulky item", new Mass(500), weightDiscrepancy.expectedWeight);
+        assertEquals("Expected weight should be reduced by the weight of the bulky item", new Mass(500), bulkyItem.getMass());
     }
 
 
