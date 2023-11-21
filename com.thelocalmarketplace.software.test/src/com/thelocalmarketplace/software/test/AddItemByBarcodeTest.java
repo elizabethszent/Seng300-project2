@@ -23,7 +23,7 @@ import com.thelocalmarketplace.hardware.BarcodedProduct;
 import com.thelocalmarketplace.hardware.Product;
 import com.thelocalmarketplace.hardware.external.ProductDatabases;
 import com.thelocalmarketplace.software.ActionBlocker;
-import com.thelocalmarketplace.software.AddItemByBarcode;
+import com.thelocalmarketplace.software.ItemController;
 import com.thelocalmarketplace.software.WeightDiscrepancy;
 
 import ca.ucalgary.seng300.simulation.NullPointerSimulationException;
@@ -56,12 +56,12 @@ public class AddItemByBarcodeTest {
     /**
      * The AddItemByBarcode object to be tested.
      */
-    private AddItemByBarcode addItemByBarcode;
+    private ItemController itemController;
     /**
      * The order where products will be added.
      */
-    private Map<Barcode, BarcodedProduct> order = new  HashMap<Barcode, BarcodedProduct>();
-    
+//    private Map<Barcode, BarcodedProduct> order = new  HashMap<Barcode, BarcodedProduct>();
+    private HashMap<Item, Integer> order = new HashMap<Item, Integer>();
     
     /**
      * Intialize the Barcodes
@@ -114,8 +114,8 @@ public class AddItemByBarcodeTest {
         barcodescanner  = new BarcodeScannerGold();
         item1 = new BarcodedItem(barcode1, new Mass(barcodedProduct1.getExpectedWeight()));
         item2 = new BarcodedItem(barcode2, new Mass(barcodedProduct2.getExpectedWeight()));
-        addItemByBarcode = new AddItemByBarcode(barcodescanner, order, discrepancy, blocker, electronicScale);
-        addItemByBarcode.register(discrepancy);
+        itemController = new ItemController(barcodescanner, order, discrepancy, blocker, electronicScale);
+        itemController.register(discrepancy);
         // add product to database
         ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode1, barcodedProduct1);
         ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode2, barcodedProduct2);
@@ -136,7 +136,7 @@ public class AddItemByBarcodeTest {
     
     @After
     public void tearDown() {
-    	addItemByBarcode = null;
+    	itemController = null;
     	order = null;
     	ProductDatabases.BARCODED_PRODUCT_DATABASE.clear();
     }
@@ -148,8 +148,9 @@ public class AddItemByBarcodeTest {
     @Test
     public void addBarcodeToOrder() {
         electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.scanBarcode(item1);
-        assertEquals(1, addItemByBarcode.getOrder().size());
+        itemController.scanBarcode(item1);
+//        assertEquals(1, itemController.getOrder().size());
+        assertEquals(1, itemController.getTotalAmountOfItemsFromOrder(order));
     }
 
     /**
@@ -161,8 +162,8 @@ public class AddItemByBarcodeTest {
         Numeral[] numeralTest = {Numeral.one, Numeral.seven};
         Barcode notInDatabaseBarcode = new Barcode(numeralTest);
         BarcodedItem item = new BarcodedItem(notInDatabaseBarcode, new Mass(barcodedProduct1.getExpectedWeight()));
-        addItemByBarcode.scanBarcode(item);
-        assertEquals(0, addItemByBarcode.getOrder().size());
+        itemController.scanBarcode(item);
+        assertEquals(0, itemController.getTotalAmountOfItemsFromOrder(order));
     }
 
     /**
@@ -170,10 +171,10 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testGetExpectedWeight() {
-        assertEquals(expectedWeight, addItemByBarcode.getExpectedWeight());
+        assertEquals(expectedWeight, itemController.getExpectedWeight());
         electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.scanBarcode(item1);
-        assertEquals(new Mass(barcodedProduct1.getExpectedWeight()),addItemByBarcode.getExpectedWeight());
+        itemController.scanBarcode(item1);
+        assertEquals(new Mass(barcodedProduct1.getExpectedWeight()),itemController.getExpectedWeight());
     }
 
     /**
@@ -191,11 +192,11 @@ public class AddItemByBarcodeTest {
     @Test
     public void testAddBarcodedProductsToOrder() {
         electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.scanBarcode(item1);
-        assertEquals(1, addItemByBarcode.getOrder().size());
+        itemController.scanBarcode(item1);
+        assertEquals(1, itemController.getTotalAmountOfItemsFromOrder(order));
         electronicScale.addAnItem(item2); // use stub to simulate weight change
-        addItemByBarcode.scanBarcode(item2);
-        assertEquals(2, addItemByBarcode.getOrder().size());
+        itemController.scanBarcode(item2);
+        assertEquals(2, itemController.getTotalAmountOfItemsFromOrder(order));
     }
 
     
@@ -204,13 +205,13 @@ public class AddItemByBarcodeTest {
      */
     @Test
     public void testTotalPrice() {
-    	assertEquals(0.0, addItemByBarcode.getTotalPrice(), 0.01);
+    	assertEquals(0.0, itemController.getTotalPrice(), 0.01);
     	electronicScale.addAnItem(item1); // use stub to simulate weight change
-        addItemByBarcode.scanBarcode(item1);
-        assertEquals(50, addItemByBarcode.getTotalPrice(), 0.01);
+        itemController.scanBarcode(item1);
+        assertEquals(50, itemController.getTotalPrice(), 0.01);
         electronicScale.addAnItem(item2); // use stub to simulate weight change
-        addItemByBarcode.scanBarcode(item2);
-        assertEquals(150, addItemByBarcode.getTotalPrice(), 0.01);
+        itemController.scanBarcode(item2);
+        assertEquals(150, itemController.getTotalPrice(), 0.01);
     }
 
 }

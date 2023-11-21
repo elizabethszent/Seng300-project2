@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import com.jjjwelectronics.AbstractDevice;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
+import com.jjjwelectronics.Item;
 import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.OverloadedDevice;
 import com.jjjwelectronics.Mass.MassDifference;
@@ -26,7 +27,7 @@ import powerutility.NoPowerException;
  *
  *@author Written by Elizabeth Szentmiklossy (UCID: 30165216)
  */
-public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> implements ElectronicScaleListener, AddItemListner {
+public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> implements ElectronicScaleListener, ItemControllerListener  {
 	// Fields to store the expected and actual weights.
 	Mass expectedWeight;
 	Mass actualWeight;
@@ -58,13 +59,33 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 		
 	}
 	@Override
-	public void ItemHasBeenAdded(Product product) {
-	    Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
+	public void ItemHasBeenAdded(Item item) {
+		Mass weightOfProduct = item.getMass();
+
+//	    Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
 		expectedWeight = expectedWeight.sum(weightOfProduct);
 		CompareWeight();
 		WeightDescrepancyEvent();
 		
 	}
+
+	@Override
+	public void ItemHasBeenRemoved(Item item, int amount) 
+	{
+		// no direct way to multiply Mass, so create 
+		// turn it into BigDecimal, multiply it and change back into mass
+		Mass weightOfItem = new Mass(item.getMass().inGrams().multiply(new BigDecimal(amount)));
+
+	    //Doesen't seem like there's a way to convert MassDifference to Mass
+		expectedWeight = new Mass(expectedWeight.inGrams().subtract(weightOfItem.inGrams()));
+//	    expectedWeight = new Mass (weightOfItem.inGrams().subtract(expectedWeight.inGrams()));
+	    
+		CompareWeight();
+		WeightDescrepancyEvent();
+	}
+	
+	
+	
 	/**
      * Method to compare the expected and actual weights.
      *
@@ -133,6 +154,4 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	@Override
 	public void aDeviceHasBeenTurnedOff(IDevice<? extends IDeviceListener> device) {
 	}
-
-
 }

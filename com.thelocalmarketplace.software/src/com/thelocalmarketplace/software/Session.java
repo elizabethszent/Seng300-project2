@@ -10,7 +10,6 @@ import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
-import com.jjjwelectronics.scanner.*;
 import com.tdc.AbstractComponent;
 import com.tdc.IComponent;
 
