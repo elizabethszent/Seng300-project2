@@ -79,8 +79,7 @@ public class WeightDiscrepancyTest {
 	    	
 	    	// Verify that the expected and actual weights are not equal.
 	        assertEquals(discrepancy.CompareWeight(),true);   	
-			
-		
+					
 		}
 	    /**
 	     * Test case to check if the actual weight is more than the expected weight.
