@@ -4,13 +4,23 @@
 
 package com.thelocalmarketplace.software;
 
+import com.jjjwelectronics.IDevice;
+import com.jjjwelectronics.scanner.Barcode;
+import com.tdc.IComponent;
 import com.thelocalmarketplace.hardware.AbstractSelfCheckoutStation;
+import com.thelocalmarketplace.hardware.BarcodedProduct;
 import com.thelocalmarketplace.hardware.external.ProductDatabases;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MainLogic {
     public AbstractSelfCheckoutStation checkoutStation;
-    private StoreDatabases productDatabase;
+    private ProductDatabases productDatabase;
+    public Session currentSession;
+    private ArrayList<Object> hardwareList;
 
 
     /**
@@ -18,22 +28,22 @@ public class MainLogic {
      *
      * @param station
      *              The self-checkout machine on which to install the software
-     * @param database
-     *              The product database, containing three hash maps:
-     *                  PriceLookUpCode --> PLUCodedProduct
-     *                  Barcode --> BarcodedProduct
-     *                  Product --> Integer         * A count of the number of items in inventory
      *
      */
-    public static MainLogic installOn(AbstractSelfCheckoutStation station, StoreDatabases database) {
-        return new MainLogic(station, database);
+    public static MainLogic installOn(AbstractSelfCheckoutStation station) {
+        return new MainLogic(station);
     }
 
     /**
      * Constructor
      */
-    public MainLogic(AbstractSelfCheckoutStation station, StoreDatabases database) {
+    public MainLogic(AbstractSelfCheckoutStation station) {
         checkoutStation = station;
-        productDatabase = database;
+        hardwareList = new ArrayList<>();
+        for (Object field : station.getClass().getDeclaredFields()) {
+            if (field instanceof IDevice || field instanceof IComponent) {
+                hardwareList.add(field);
+            }
+        }
     }
 }
