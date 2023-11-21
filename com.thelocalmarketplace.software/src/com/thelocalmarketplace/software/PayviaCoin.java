@@ -74,9 +74,12 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 		return false;
 
 	}
+	
+	
+	 
 
 
-	public void GiveChange() throws CashOverloadException, DisabledException {
+	public void GiveChange() throws CashOverloadException, DisabledException, NoCashAvailableException {
 
 		for(java.util.Map.Entry< BigDecimal,AbstractCoinDispenser> i:dispencer) {
 			BigDecimal exactchange = i.getKey();
@@ -94,6 +97,10 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 
 				} 
 			}
+		}
+		if(change.compareTo(BigDecimal.ZERO)>0) {
+			String error = change.toString();
+			throw new NoCashAvailableException();
 		}
 	}
 
@@ -122,6 +129,16 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 	@Override
 	public void WeightDiscrancyResolved() {
 		enabled(coinSlot);	
+	}
+
+	@Override
+	public void addOwnBagsSelected() {
+
+	}
+
+	@Override
+	public void addOwnBagDeselected() {
+
 	}
 
 	// Other overridden methods from CoinStorageUnitObserver (unimplemented).

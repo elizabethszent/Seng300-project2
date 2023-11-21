@@ -8,10 +8,12 @@ package com.thelocalmarketplace.software;
 import com.jjjwelectronics.AbstractDevice;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
+import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
 import com.tdc.AbstractComponent;
 import com.tdc.IComponent;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 /**
@@ -38,6 +40,10 @@ public class Session implements WeightDiscrepancyListner {
 			}
 			this.freezeSession();
 			status = 0;
+			if (arg instanceof AbstractElectronicScale) {
+				WeightDiscrepancy weight = new WeightDiscrepancy(Mass.ZERO,(AbstractElectronicScale) arg);
+				weight.register(this);
+			}
 		}
 	}
 
@@ -125,5 +131,15 @@ public class Session implements WeightDiscrepancyListner {
 		if (status == 2) {
 			this.unfreezeSession();
 		}
+	}
+
+	@Override
+	public void addOwnBagsSelected() {
+
+	}
+
+	@Override
+	public void addOwnBagDeselected() {
+
 	}
 }

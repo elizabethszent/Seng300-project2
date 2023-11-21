@@ -335,7 +335,7 @@ public final class ItemController extends AbstractDevice<ItemControllerListener>
 		actionBlocker.unblockInteraction();
 	}
 
-
+	// Unused Methods
     @Override
     public void aDeviceHasBeenEnabled(IDevice<? extends IDeviceListener> device) {
     }
@@ -351,4 +351,12 @@ public final class ItemController extends AbstractDevice<ItemControllerListener>
     @Override
     public void aDeviceHasBeenTurnedOff(IDevice<? extends IDeviceListener> device) {
     }
+
+	@Override
+	public void addOwnBagsSelected() {
+	}
+
+	@Override
+	public void addOwnBagDeselected() {
+	}
 }

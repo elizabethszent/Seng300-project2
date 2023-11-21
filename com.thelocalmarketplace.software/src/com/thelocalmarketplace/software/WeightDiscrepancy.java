@@ -35,12 +35,12 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 	/**
 	 * Constructor for WeightDiscrepancy class
 	 * 
-	 * @param eWeight  The expected weight to compare with.
+	 * @param zero  The expected weight to compare with.
      * @param listener The electronic scale listener to monitor for weight changes.
      */    
-	public WeightDiscrepancy(Mass eWeight, AbstractElectronicScale listner ){
+	public WeightDiscrepancy(Mass zero, AbstractElectronicScale listner){
 		 // Initialize the expected weight with the provided value
-		expectedWeight = eWeight;
+		expectedWeight = zero;
 		Sensetivity = listner.getSensitivityLimit();
 		try {
 			// Attempt to get the current mass on the scale from the provided listener.

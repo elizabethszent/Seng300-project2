@@ -4,8 +4,10 @@ import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.Numeral;
+import com.jjjwelectronics.scale.AbstractElectronicScale;
 import com.jjjwelectronics.scanner.*;
 import com.thelocalmarketplace.software.Session;
+import com.thelocalmarketplace.software.WeightDiscrepancy;
 
 import org.junit.*;
 import powerutility.PowerGrid;
@@ -90,4 +92,13 @@ public class SessionTest {
         myScanner.scan(myItem1);
         assertEquals(myBarcode2, scannedBarcode);
     }
+    
+	 @Test
+	    public void weightdiscrepancy(){
+		 //scan a item
+		 //check that hardware has been disabled
+		 
+		 
+	 }
+	    
 }
