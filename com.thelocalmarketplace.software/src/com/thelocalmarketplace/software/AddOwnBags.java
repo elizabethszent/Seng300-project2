@@ -9,6 +9,7 @@ import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.OverloadedDevice;
+import com.jjjwelectronics.Mass.MassDifference;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
 import com.jjjwelectronics.scale.ElectronicScaleListener;
 import com.jjjwelectronics.scale.IElectronicScale;
@@ -20,51 +21,80 @@ import powerutility.NoPowerException;
  */
 public class AddOwnBags extends AbstractDevice<WeightDiscrepancyListner> implements ElectronicScaleListener{
 	Mass bagWeight;
+	Mass expectedWeight;
+	Mass actualWeight;
+	Mass Sensetivity;
 	boolean addOwnBagsSelection;
-	boolean	testSentinel;
 	Mass bagLimit = new Mass(BigInteger.valueOf(500 * Mass.MICROGRAMS_PER_GRAM)); // limit for the bag is 500g
-	public AddOwnBags(Mass bagWeight, boolean addOwnBagsSelection, WeightDiscrepancyListner wListner, AbstractElectronicScale listner) {
+	public AddOwnBags(Mass expectedWeight, Mass bagWeight, boolean addOwnBagsSelection, AbstractElectronicScale listner) {
 		this.addOwnBagsSelection = addOwnBagsSelection;
-		if(addOwnBagsSelection) {
-		// Initializing the bag weight, if the add own bags is selected.
-		this.bagWeight = bagWeight;
-		this.bagWeightOverloaded();
-		this.userChoice();
-		}else {
-			this.bagWeight = Mass.ZERO;
+		Sensetivity = listner.getSensitivityLimit();
+		this.expectedWeight = expectedWeight;
+		try {
+			// Attempt to get the current mass on the scale from the provided listener.
+			 this.actualWeight = listner.getCurrentMassOnTheScale();
+		} catch (NoPowerException e) {
+			 // Handle the case where there is a NoPowerException.
+			this.actualWeight = Mass.ZERO;
 		}
+		catch (OverloadedDevice e) {
+			 // Handle the case where there is a OverloadedDevice exception.
+			this.actualWeight = Mass.ZERO;	
+		}
+		this.actualWeight = this.expectedWeight.sum(bagWeight);
+		if(addOwnBagsSelection) {
+			// if the bag weight Overloaded return true;
+			// Initializing the bag weight, if the add own bags is selected.
+			this.bagWeight = bagWeight;
+			}else {
+				this.bagWeight = Mass.ZERO;
+			}
 		// register the class into listener 
 		listner.register(this);
+
+		
 	
 	}
 	// See if the bag weight is out of the allowable range we set
-	public void bagWeightOverloaded() {
+	public boolean bagWeightOverloaded() {
 		if (bagWeight.compareTo(bagLimit)>0) {
+			boolean addOwnBagsSelection = false;
 			for(WeightDiscrepancyListner l : listeners()){
+				// Make the weight Discrepancy occurs since the weight of the bag is overloaded
 				l.WeightDiscrancyOccurs();
+				return true;
 			}
 		}
+		return false;
 	}
 	
-	
-	// See if the user chooses the add own bag selection
-	public void userChoice() {
+	// Notify the listener the choice of the user
+	public void notifyListner() {
 		for(WeightDiscrepancyListner l : listeners()) {
 			if (addOwnBagsSelection==false){
 			l.addOwnBagDeselected();
-			boolean testSentienel = false;
-			
 		}else{
 			l.addOwnBagsSelected();
 			l.WeightDiscrancyResolved();
-			boolean testSentienel = true;
 			}
 		}
 	}
-		
-	public boolean getTestSentinel() {
-		return testSentinel;
-		
+	// add the weight of the bag if the user chooses the add bag selection.
+	public Mass addBagWeight() {
+		if(addOwnBagsSelection) {
+		Mass expectedWeight = actualWeight.sum(bagWeight);
+		return expectedWeight;
+		}else {
+		return null;
+		}
+	}
+		// we use this method to see if the bag weight is added into the expected weight.
+	public boolean CompareWeight() {
+		MassDifference difference = actualWeight.difference(expectedWeight);		
+		if(difference.compareTo(Sensetivity) <= 0) {
+		return true;
+	}
+		return false;
 	}	
 		
 	
