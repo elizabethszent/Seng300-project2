@@ -86,7 +86,7 @@ public class PrintReceipt {
         String dateTime = LocalDateTime.now().format(formatter);
 
         List<String> itemsFormatted = purchasedItems.stream()
-        		.map((Product item) -> String.format("$%.2f", item.getPrice()))
+        		.map((Product item) -> String.format("$%d", item.getPrice()))
                 .collect(Collectors.toList());
 
         String totalFormatted = String.format("Total: $%.2f", totalAmount);

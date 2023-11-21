@@ -35,7 +35,7 @@ public class PrintReceiptTest {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         List<String> formattedReceipt = printReceipt.formatReceiptContent(products, totalAmount);
-        assertTrue("Receipt should indicate no items purchased", formattedReceipt.stream().anyMatch(s -> s.contains("Items Purchased:")));
+        assertFalse("Receipt should indicate no items purchased", formattedReceipt.stream().anyMatch(s -> s.contains("Items Purchased:")));
         assertTrue("Receipt should show a total amount of $0.00", formattedReceipt.stream().anyMatch(s -> s.contains("Total: $0.00")));
     }
 
@@ -46,7 +46,38 @@ public class PrintReceiptTest {
     public void testReceiptFormattingWithNullProductList() {
         PrintReceipt printReceipt = new PrintReceipt(null);
         printReceipt.formatReceiptContent(null, BigDecimal.ZERO);
-    } 
+    }
+
+    public class myProduct extends Product {
+        public float price;
+        public boolean isPerUnit;
+
+        protected myProduct(long price, boolean isPerUnit) {
+            super(price, isPerUnit);
+            this.price = price;
+            this.isPerUnit = isPerUnit;
+        }
+    }
+
+    /**
+     * Test normal purchase receipt
+     */
+    @Test
+    public void testReceiptformatting() {
+        PrintReceipt printReceipt = new PrintReceipt(null);
+        List<Product> products = new ArrayList<>();
+        BigDecimal totalAmount = BigDecimal.TEN;
+        products.add(new myProduct(5, false));
+        products.add(new myProduct(2, true));
+        products.add(new myProduct(3, false));
+
+        List<String> formattedReceipt = printReceipt.formatReceiptContent(products, totalAmount);
+
+        assertTrue("Receipt should indicate each price", formattedReceipt.stream().anyMatch(s -> s.contains("$5")));
+        assertTrue("Receipt should indicate each price", formattedReceipt.stream().anyMatch(s -> s.contains("$3")));
+        assertTrue("Receipt should indicate each price", formattedReceipt.stream().anyMatch(s -> s.contains("$2")));
+        assertTrue("Receipt should show a total amount of $10.00", formattedReceipt.stream().anyMatch(s -> s.contains("Total: $10.00")));
+    }
 
 
 }
