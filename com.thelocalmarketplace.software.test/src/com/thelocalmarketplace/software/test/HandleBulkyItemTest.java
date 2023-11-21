@@ -15,7 +15,10 @@ package com.thelocalmarketplace.software.test;
 import com.thelocalmarketplace.hardware.AbstractSelfCheckoutStation;
 import com.thelocalmarketplace.hardware.Product;
 import com.thelocalmarketplace.hardware.SelfCheckoutStationBronze;
+import com.thelocalmarketplace.software.ActionBlocker;
 import com.thelocalmarketplace.software.HandleBulkyItem;
+import com.thelocalmarketplace.software.WeightDiscrepancy;
+import com.thelocalmarketplace.software.WeightDiscrepancyListner;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Item;
@@ -64,7 +67,6 @@ public class HandleBulkyItemTest {
 		this.weightDiscrepancy = new WeightDiscrepancy(new Mass(5*Mass.MICROGRAMS_PER_GRAM), scaleListener);
         this.handleBulkyItem = new HandleBulkyItem(checkoutStation, listener, blocker, weightDiscrepancy, scaleListener, weightDiscrepancyListener);
         Barcode barcode = new Barcode(numerals);
-        BarcodedItem item;
         // Turn on the power
 		scaleListener.plugIn(grid);
 		scaleListener.turnOn();
@@ -88,8 +90,9 @@ public class HandleBulkyItemTest {
         scaleListener.plugIn(grid);
         scaleListener.turnOn();
 		WeightDiscrepancy discrepancy = new WeightDiscrepancy(new Mass(5*Mass.MICROGRAMS_PER_GRAM), scaleListener);
+		//discrepancy.ItemHasBeenAdded(bulkyItem);
         this.bulkyItem = new BarcodedItem(new Barcode(new Numeral[]{Numeral.zero, Numeral.one}), new Mass(500));
-        handleBulkyItem.setBagItem(true); // Simulate customer choosing to bag the item anyway
+        handleBulkyItem.setBagItem(false); // Simulate customer choosing to bag the item anyway
 
 
         // Perform the action that may cause a weight discrepancy

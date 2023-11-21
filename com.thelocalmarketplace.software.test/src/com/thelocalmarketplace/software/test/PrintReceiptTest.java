@@ -46,7 +46,7 @@ public class PrintReceiptTest {
     public void testReceiptFormattingWithNullProductList() {
         PrintReceipt printReceipt = new PrintReceipt(null);
         printReceipt.formatReceiptContent(null, BigDecimal.ZERO);
-    }
+    } 
 
 
 }

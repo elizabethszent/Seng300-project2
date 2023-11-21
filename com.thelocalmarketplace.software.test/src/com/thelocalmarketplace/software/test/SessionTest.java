@@ -44,7 +44,7 @@ public class SessionTest {
     private static BarcodedItem myItem1;
     private static BarcodedItem myItem2;
     private static Barcode myBarcode1;
-    private static Barcode myBarcode2;
+    private static Barcode myBarcode2; 
     private static Barcode scannedBarcode;
     private static ScannerListener myScannerListener;
 

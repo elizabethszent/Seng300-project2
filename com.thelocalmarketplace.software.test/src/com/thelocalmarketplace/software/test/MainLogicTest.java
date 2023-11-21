@@ -53,7 +53,7 @@ public class MainLogicTest {
         MainLogic.installOn(checkoutStation);
         checkoutStation.plugIn(grid);
         checkoutStation.turnOn();
-    }
+    } 
 
     @Test
     public void testStation() {
