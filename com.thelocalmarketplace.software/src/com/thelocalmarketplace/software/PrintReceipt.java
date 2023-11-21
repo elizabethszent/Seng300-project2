@@ -51,7 +51,7 @@ public class PrintReceipt {
      * @throws EmptyDevice       If the printer runs out of ink or paper.
      * @throws OverloadedDevice  If too many characters are sent to a line of the printer.
      */
-    private void printReceipt(List<Product> purchasedItems, BigDecimal totalAmount) throws IOException, EmptyDevice, OverloadedDevice {
+    public void printReceipt(List<Product> purchasedItems, BigDecimal totalAmount) throws IOException, EmptyDevice, OverloadedDevice {
         List<String> formattedContent = formatReceiptContent(purchasedItems, totalAmount);
         for (String line : formattedContent) {
             for (char c : line.toCharArray()) {
@@ -69,12 +69,12 @@ public class PrintReceipt {
      * @param totalAmount    The total amount of the transaction.
      * @return A list of strings representing the formatted receipt content.
      */
-    private List<String> formatReceiptContent(List<Product> purchasedItems, BigDecimal totalAmount) {
+    public List<String> formatReceiptContent(List<Product> purchasedItems, BigDecimal totalAmount) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String dateTime = LocalDateTime.now().format(formatter);
 
         List<String> itemsFormatted = purchasedItems.stream()
-        		.map((Product item) -> String.format("%s - $%.2f", item.getPrice()))
+        		.map((Product item) -> String.format("$%.2f", item.getPrice()))
                 .collect(Collectors.toList());
 
         String totalFormatted = String.format("Total: $%.2f", totalAmount);
@@ -82,7 +82,6 @@ public class PrintReceipt {
         return List.of(
                 "The Local Marketplace",
                 "Date: " + dateTime,
-                "Items Purchased:",
                 String.join("\n", itemsFormatted),
                 totalFormatted,
                 "Thank you for shopping with us!"
@@ -94,7 +93,7 @@ public class PrintReceipt {
      *
      * @param e The exception encountered during printing.
      */
-    private void handlePrinterException(Exception e) {
+    public void handlePrinterException(Exception e) {
         System.err.println("Printer error: " + e.getMessage());
     }
 
