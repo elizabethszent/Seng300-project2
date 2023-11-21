@@ -62,7 +62,7 @@ public class AddItemByBarcodeTest {
      */
 //    private Map<Barcode, BarcodedProduct> order = new  HashMap<Barcode, BarcodedProduct>();
     private HashMap<Item, Integer> order = new HashMap<Item, Integer>();
-    
+     
     /**
      * Intialize the Barcodes
      */

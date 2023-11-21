@@ -50,7 +50,7 @@ public class WeightDiscrepancyTest {
 		/**
 	     * Test case to check if the actual weight is equal to the expected weight.
 	     */
-	    @Test
+	    @Test 
 	    public void EqualTO() {
 	    	listner.plugIn(grid);
 	    	listner.turnOn();
