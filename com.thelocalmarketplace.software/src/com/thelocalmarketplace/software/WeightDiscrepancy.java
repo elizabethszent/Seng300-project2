@@ -94,7 +94,7 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 		Mass weightOfItem = new Mass(item.getMass().inGrams().multiply(new BigDecimal(amount)));
 
 	    //Doesen't seem like there's a way to convert MassDifference to Mass
-		expectedWeight = new Mass(expectedWeight.inGrams().subtract(weightOfItem.inGrams()));
+		expectedWeight = new Mass(expectedWeight.inGrams().subtract(weightOfItem.inGrams()).abs());
 //	    expectedWeight = new Mass (weightOfItem.inGrams().subtract(expectedWeight.inGrams()));
 	    
 		CompareWeight();
