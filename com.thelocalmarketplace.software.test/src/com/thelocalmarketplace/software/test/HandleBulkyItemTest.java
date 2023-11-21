@@ -108,7 +108,7 @@ public class HandleBulkyItemTest {
     // the new expected weight
     @Test
     public void testFixDiscrepancyAdjustsWeight() {
-        Mass initialExpectedWeight = new Mass(500);
+        Mass initialExpectedWeight = new Mass(1000);
         bulkyItem = new BarcodedItem(new Barcode(new Numeral[]{Numeral.zero, Numeral.one}), new Mass(500));
 
         // Call the method under test
