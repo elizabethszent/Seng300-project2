@@ -1,8 +1,4 @@
 //Elizabeth Szentmiklossy UCID: 30165216
-//Justine Mangaliman UCID: 30164741
-//Enzo Mutiso UCID: 30182555
-//Abdelrahman Mohamed UCID: 30162037
-//Mohammad Mustafa Mehtab UCID: 30189394
 package com.thelocalmarketplace.software;
 import java.math.BigDecimal;
 
@@ -20,11 +16,16 @@ import com.thelocalmarketplace.hardware.Product;
 
 import powerutility.NoPowerException;
 /**
- * This class represents a Weight Discrepancy checker that listens to changes in weight measurements on an
- * electronic scale and compares it to the actual weight of the item. This class implements methods from ElectronicScaleListner
+ * The WeightDiscrepancy class represents a weight discrepancy checker that listens to changes in weight measurements on an
+ * electronic scale and compares it to the actual weight of the item. This class implements methods from ElectronicScaleListener
  * to communicate with the hardware.
  *
- *@author Written by Elizabeth Szentmiklossy (UCID: 30165216)
+ * The class also implements AddItemListener to handle events when a product is added.
+ *
+ * @author Elizabeth Szentmiklossy (UCID: 30165216)
+ *
+ * @see ElectronicScaleListener
+ * @see AddItemListener
  */
 public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> implements ElectronicScaleListener, AddItemListner {
 	// Fields to store the expected and actual weights.
@@ -57,6 +58,11 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 		
 		
 	}
+	 /**
+     * Handles events when a product has been added.
+     *
+     * @param product The product that has been added.
+     */
 	@Override
 	public void ItemHasBeenAdded(Product product) {
 	    Mass weightOfProduct = new Mass(((BarcodedProduct) product).getExpectedWeight());
@@ -93,7 +99,9 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 		
 		
 	}
-	
+	  /**
+     * Triggers weight discrepancy events for registered listeners.
+     */
 	public void WeightDescrepancyEvent() {
 		
 		for(WeightDiscrepancyListner l : listeners()) {
@@ -107,8 +115,6 @@ public class WeightDiscrepancy extends AbstractDevice<WeightDiscrepancyListner> 
 			l.WeightDiscrancyResolved();
 			}
 		}
-		// Update the actual weight when the mass on the scale changes.
-		
 		
 	}
 	

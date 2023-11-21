@@ -1,8 +1,6 @@
 //Elizabeth Szentmiklossy UCID: 30165216
-//Justine Mangaliman UCID: 30164741
-//Enzo Mutiso UCID: 30182555
-//Abdelrahman Mohamed UCID: 30162037
-//Mohammad Mustafa Mehtab UCID: 30189394
+
+
 package com.thelocalmarketplace.software;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,12 +21,19 @@ import com.tdc.coin.CoinStorageUnit;
 import com.tdc.coin.CoinStorageUnitObserver;
 import com.thelocalmarketplace.hardware.CoinTray;
 /**
- * PayviaCoin class handles payments and monitors the payment process, including weight discrepancies.
+ * The PayviaCoin class handles payments and monitors the payment process, including weight discrepancies.
  * This class does not yet handle change.
  *
- * @author Elizabeth Szentmiklossy (UCID: 30165216)
-
- */
+ * The class is designed to facilitate payments through the CoinSlot by inserting coins.
+ * It tracks the amount owed, the amount inserted, and monitors weight discrepancies using a WeightDiscrepancy instance.
+ * 
+ * The class also implements the CoinStorageUnitObserver interface to observe events related to coin storage units.
+ *
+ *@author Elizabeth Szentmiklossy (UCID: 30165216)
+ *
+ * @see CoinStorageUnitObserver
+ * @see WeightDiscrepancyListner
+ * */
 
 public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyListner{
 	private BigDecimal amount_inserted = BigDecimal.ZERO; //
@@ -77,7 +82,13 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 	
 	
 	 
-
+	/**
+	 * Dispenses change based on the amount paid and owed, using available coin dispensers.
+	 *
+	 * @throws CashOverloadException   if there is an overload in the cash system
+	 * @throws DisabledException       if the system is disabled
+	 * @throws NoCashAvailableException if there is not enough cash available for the payment
+	 */
 
 	public void GiveChange() throws CashOverloadException, DisabledException, NoCashAvailableException {
 
@@ -110,14 +121,12 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 	// to enable the coinslot.
 	@Override
 	public void enabled(IComponent<? extends IComponentObserver> component) {
-		// TODO Auto-generated method stub
 		component.enable();
 	}
 
 	// to disable the coinslot.
 	@Override
 	public void disabled(IComponent<? extends IComponentObserver> component) {
-		// TODO Auto-generated method stub
 		component.disable();
 	}
 
@@ -150,29 +159,17 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 	@Override
 	public void coinsUnloaded(CoinStorageUnit unit) {	
 	}
-
 	@Override
 	public void aDeviceHasBeenEnabled(IDevice<? extends IDeviceListener> device) {
-
 	}
-
 	@Override
 	public void aDeviceHasBeenDisabled(IDevice<? extends IDeviceListener> device) {
-
 	}
-
 	@Override
 	public void aDeviceHasBeenTurnedOn(IDevice<? extends IDeviceListener> device) {
-		// TODO Auto-generated method stub
-
 	}
-
 	@Override
 	public void aDeviceHasBeenTurnedOff(IDevice<? extends IDeviceListener> device) {
-		// TODO Auto-generated method stub
-
 	}
-
-
 }
 
