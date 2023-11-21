@@ -131,6 +131,16 @@ public class PayviaCoin implements CoinStorageUnitObserver, WeightDiscrepancyLis
 		enabled(coinSlot);	
 	}
 
+	@Override
+	public void addOwnBagsSelected() {
+
+	}
+
+	@Override
+	public void addOwnBagDeselected() {
+
+	}
+
 	// Other overridden methods from CoinStorageUnitObserver (unimplemented).
 	@Override
 	public void turnedOn(IComponent<? extends IComponentObserver> component) {	

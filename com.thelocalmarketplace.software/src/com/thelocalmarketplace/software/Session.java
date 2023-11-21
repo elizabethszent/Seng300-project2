@@ -132,4 +132,14 @@ public class Session implements WeightDiscrepancyListner {
 			this.unfreezeSession();
 		}
 	}
+
+	@Override
+	public void addOwnBagsSelected() {
+
+	}
+
+	@Override
+	public void addOwnBagDeselected() {
+
+	}
 }
