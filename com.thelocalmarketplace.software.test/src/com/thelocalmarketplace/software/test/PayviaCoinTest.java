@@ -1,8 +1,13 @@
 //Elizabeth Szentmiklossy UCID: 30165216
-//Justine Mangaliman UCID: 30164741
-//Enzo Mutiso UCID: 30182555
-//Abdelrahman Mohamed UCID: 30162037
-//Mohammad Mustafa Mehtab UCID: 30189394
+
+/**
+ * This class contains JUnit test cases to verify the functionality of the PayviaCoin class.
+ * 
+ * The tests cover scenarios such as adding coins, making payments, handling insufficient change, and dispensing change.
+ * 
+ * @author Elizabeth Szentmiklossy (UCID: 30165216)
+ */
+
 package com.thelocalmarketplace.software.test;
 
 import com.jjjwelectronics.Mass;
@@ -36,11 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * This class contains JUnit test cases to verify the functionality of the
- * PayviaCoin class.
- * 
- * @author Elizabeth Szentmiklossy (UCID: 30165216)
- * 
+ * JUnit test class for {@link PayviaCoin}.
  */
 public class PayviaCoinTest {
 	ElectronicScaleGold listner = new ElectronicScaleGold();
@@ -50,12 +51,11 @@ public class PayviaCoinTest {
 	PowerGrid grid = PowerGrid.instance();
 	CoinTray sink = new CoinTray(10); 
 
-	/**
-	 * Test case to verify adding coins and making payments with the PayviaCoin
-	 * class.
-	 * @throws NoCashAvailableException 
-	 */
-	@Test
+	 /**
+     * Test case to verify adding coins and making payments with the PayviaCoin class.
+     * 
+     */
+    @Test
 	public void AddCoins() throws NoCashAvailableException {
 
 		// The starting amount paid
@@ -78,21 +78,10 @@ public class PayviaCoinTest {
 		assertEquals(payment.MakePayment(tray), false);
 	}
 
-	/**
-	 * Test case to check what happens when not enough change
-	 */
-	/*
-	 * @Test public void NotEnoughChnage() { PayviaCoin amount_owed = new
-	 * PayviaCoin(BigDecimal.valueOf(170.85), null, discrepancy, coin_slot, amount);
-	 * 
-	 * Coin tray = new Coin(BigDecimal.valueOf(180));
-	 * 
-	 * //if(change.compareTo(amount_owed)) {
-	 * assertThrows(NoCashAvailableException.class,() ->
-	 * amount_owed.MakePayment(tray)); //}
-	 */ //}
-	
-	
+    /**
+     * Test case to check what happens when there is not enough change.
+     *      * @throws NoCashAvailableException if there is not enough cash available for the payment
+     */
 
 	@Test
 	public void NotEnoughChange() {
@@ -115,7 +104,13 @@ public class PayviaCoinTest {
 	    assertThrows(NoCashAvailableException.class, () -> amountOwed.GiveChange());
 	}
 
-
+	/**
+     * Test case to verify change is dispensed correctly.
+     * 
+     * @throws NoCashAvailableException if there is not enough cash available for the payment
+     * @throws CashOverloadException if there is an overload in the cash system
+     * @throws DisabledException if the system is disabled
+     */
 
 	 @Test
 	    public void Change() throws NoCashAvailableException, CashOverloadException, DisabledException {
@@ -155,21 +150,9 @@ public class PayviaCoinTest {
 	        assertEquals(sum.doubleValue(), Change, 0.0000000111);
 	    }
 
-	/**
-	 * Test case to verify change dispenced
-	 */
-	/*
-	 * @Test public void Change() {
-	 * 
-	 * PayviaCoin amount_owed = new PayviaCoin(BigDecimal.valueOf(170.85), null,
-	 * discrepancy, coin_slot, amount); Coin tray = new
-	 * Coin(BigDecimal.valueOf(180));
-	 * 
-	 * }
-	 */
-	/**
-	 * Sets up the test fixture. Called before every test case method.
-	 */
+	 /**
+	     * Sets up the test fixture. Called before every test case method.
+	     */
 	@Before
 	public void SetUp() {
 	
