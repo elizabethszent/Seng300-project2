@@ -8,16 +8,19 @@ import com.tdc.DisabledException;
 import com.tdc.IComponent;
 import com.tdc.IComponentObserver;
 import com.tdc.NoCashAvailableException;
+import com.tdc.Sink;
 import com.tdc.banknote.AbstractBanknoteDispenser;
 import com.tdc.banknote.Banknote;
 import com.tdc.banknote.BanknoteDispensationSlot;
 import com.tdc.banknote.BanknoteDispensationSlotObserver;
+import com.tdc.banknote.BanknoteDispenserObserver;
 import com.tdc.banknote.BanknoteInsertionSlot;
 import com.tdc.banknote.BanknoteInsertionSlotObserver;
 import com.tdc.banknote.BanknoteStorageUnit;
 import com.tdc.banknote.BanknoteStorageUnitObserver;
 import com.tdc.banknote.BanknoteValidator;
 import com.tdc.banknote.BanknoteValidatorObserver;
+import com.tdc.banknote.IBanknoteDispenser;
 
 /**
  * PayViaBanknote class handles payments through the use of banknotes, monitors payment process and 
@@ -26,7 +29,7 @@ import com.tdc.banknote.BanknoteValidatorObserver;
  * @author Jane Magai (UCID:30180119)
  * 
  */
-public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispensationSlotObserver,BanknoteInsertionSlotObserver,BanknoteValidatorObserver {
+public class PayViaBanknote implements BanknoteValidatorObserver {
 	private BigDecimal amountInserted;
 	private BigDecimal amountOwed;
 	private BanknoteDispensationSlot dispensationSlot;
@@ -52,23 +55,31 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 		this.dispenserList = dispenserList ;
 		this.amountInserted = BigDecimal.ZERO;
 	}
+		
+		
+	
 	
 	
 	/**
-	 *Represents a customer succesfully making a payment meaning paid full amount, also keeps track of change and current amount owed by customer;
+	 *Represents a customer succesfully making a payment meaning paid full amount, it keeps track of change and current amount owed by customer.
+	 *Checks if InsertionSlot has any dangling notes to ensure that the banknote was validated and inserted.
 	 *
 	 *@param amountInserted. The banknote used for payment.
 	 *@return True if payment is succesful meaning full amount is paid, false otherwise
+	 * @throws CashOverloadException 
+	 * @throws DisabledException 
 	 */
 	public Boolean makePayment (Banknote banknoteAdded){
-		amountInserted = amountInserted.add(banknoteAdded.getDenomination());
-	    if(amountInserted.compareTo(amountOwed)>=0) {
-	    	change = amountInserted.subtract(amountOwed);
-	    	System.out.println("Payment is complete, change due is" + change.toPlainString()); // Stimulates signalling to the customer that the payment is succesful and change is due.
-	    	return true;
-	    }
+		if (!insertionSlot.hasDanglingBanknotes()) 
+		    amountInserted = amountInserted.add(banknoteAdded.getDenomination());
+		if(amountInserted.compareTo(amountOwed)>=0) {
+		    	change = amountInserted.subtract(amountOwed);
+		    	System.out.println("Payment is complete, change due is " + change.toPlainString()); // Stimulates signalling to the customer that the payment was succesful and change is due.
+		    	return true;
+	           }
+	    
 	    else
-	    	System.out.println("Payment not complete balance remaining "+ amountOwed );
+	    	System.out.println("Payment not complete balance remaining " + amountOwed );
 	    	return false;	        
 	}
 	
@@ -82,7 +93,6 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 		for (Map.Entry<BigDecimal, AbstractBanknoteDispenser> entry : dispenserList) {
 	        BigDecimal exactChange = entry.getKey();
 	        AbstractBanknoteDispenser banknoteDispenser = entry.getValue();
-
 	        BigDecimal requiredBanknotes = change.divideToIntegralValue(exactChange);
 
 	        for (int i = 0; i < requiredBanknotes.intValue(); i++) {
@@ -98,18 +108,13 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 		
 	}
 	
-	
-	
-	
-	
-	
+		
 	
 	
 
-	//Unimplemented Observor methods
+	//Observor methods not implemented 
 	@Override
 	public void enabled(IComponent<? extends IComponentObserver> component) {
-		// TODO Auto-generated method stub
 	}
 	
 	@Override
@@ -126,70 +131,19 @@ public class PayViaBanknote implements BanknoteStorageUnitObserver,BanknoteDispe
 	public void turnedOff(IComponent<? extends IComponentObserver> component) {
 		// TODO Auto-generated method stub
 		
-	}	
-	@Override
-	public void banknotesFull(BanknoteStorageUnit unit) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void banknoteAdded(BanknoteStorageUnit unit) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void banknotesLoaded(BanknoteStorageUnit unit) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void banknotesUnloaded(BanknoteStorageUnit unit) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void banknoteDispensed(BanknoteDispensationSlot slot, List<Banknote> banknotes) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void banknotesRemoved(BanknoteDispensationSlot slot) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-
-	@Override
-	public void banknoteInserted(BanknoteInsertionSlot slot) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void banknoteEjected(BanknoteInsertionSlot slot) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void banknoteRemoved(BanknoteInsertionSlot slot) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
+	}		
 	@Override
 	public void goodBanknote(BanknoteValidator validator, Currency currency, BigDecimal denomination) {
 		// TODO Auto-generated method stub
 		
 	}
-
-
 	@Override
 	public void badBanknote(BanknoteValidator validator) {
 		// TODO Auto-generated method stub
 		
 	}
+
+
 	
 	
 	

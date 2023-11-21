@@ -16,7 +16,9 @@ import com.tdc.banknote.AbstractBanknoteDispenser;
 import com.tdc.banknote.Banknote;
 import com.tdc.banknote.BanknoteDispensationSlot;
 import com.tdc.banknote.BanknoteDispenserBronze;
+import com.tdc.banknote.BanknoteDispenserGold;
 import com.tdc.banknote.BanknoteInsertionSlot;
+import com.tdc.banknote.IBanknoteDispenser;
 import com.thelocalmarketplace.software.PayViaBanknote;
 
 import ca.ucalgary.seng300.simulation.NullPointerSimulationException;
@@ -31,27 +33,61 @@ public class PayViaBanknoteTest {
 	private BanknoteInsertionSlot insertionSlot;
 	private List<Map.Entry<BigDecimal, AbstractBanknoteDispenser>> dispenserList;
 	private PowerGrid grid;
+	
+	// Stub class implementing Sink<T> interface.
+	class mysink implements Sink<Banknote> {
 
+		@Override
+		public void receive(Banknote cash) throws CashOverloadException, DisabledException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public boolean hasSpace() {
+			// TODO Auto-generated method stub
+			return true;
+		}
+		
+	}
+	
 
 	
 	/**
-	 * Initializes objects before each test case.
+	 * Initializes objects and sets up each test case.
+	 * @throws CashOverloadException 
 	 */
 	@Before
-	public void setup() {
+	public void setup() throws CashOverloadException {
+		//Initializing Objects
 		BigDecimal amountOwed = BigDecimal.valueOf(10);
+		BigDecimal amountInserted = BigDecimal.ZERO;
 		dispensationSlot = new BanknoteDispensationSlot();
 		insertionSlot = new BanknoteInsertionSlot();
 		dispenserList = new ArrayList<>();
+		AbstractBanknoteDispenser dispenser = new BanknoteDispenserBronze();
+		dispenser.sink = new mysink();
+		
+		// Connecting components to a powerGrid.
 		grid = PowerGrid.instance();
-		BigDecimal amountInserted = BigDecimal.ZERO;
-		AbstractBanknoteDispenser dispenser = new BanknoteDispenserBronze();  //Testing with Bronze tier dispenser (Checkoutstation)
-		dispenserList.add(Map.entry(BigDecimal.TEN, dispenser));   // Adds dispenser with denomination
+		dispenser.connect(grid);
+		insertionSlot.connect(grid);
+		dispensationSlot.connect(grid);
+				
+		// Activating and enabling components.
 		dispensationSlot.activate();
 		insertionSlot.activate();
 		dispenser.activate();
-		dispenser.connect(grid);
+		dispenser.enable();
+		dispensationSlot.enable();
+		insertionSlot.enable();
 		
+		// Adding a loaded dispenser to dispenser list	
+		Banknote banknote1 = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(10));
+		dispenser.load(banknote1);
+		dispenserList.add(Map.entry(BigDecimal.TEN, dispenser));
+		
+	   // Instance of PayViaBanknote 
 		payViaBanknote = new PayViaBanknote(amountOwed, dispensationSlot, insertionSlot, dispenserList);
 		
 	}
@@ -59,14 +95,15 @@ public class PayViaBanknoteTest {
 	
 	//Test for when payment is complete
 	@Test
-	public void testPaymentSuccesful() {
+	public void testPaymentSuccesful() throws DisabledException, CashOverloadException {
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.TEN); 
-        assertTrue(payViaBanknote.makePayment(banknote));		
+        assertTrue(payViaBanknote.makePayment(banknote));
+      
 	}
 	
 	// Test for when payment is not complete (Not paid in full)
 	@Test
-	public void testPaymentUnsuccesful() {
+	public void testPaymentUnsuccesful() throws DisabledException, CashOverloadException {
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(5)); 
         assertEquals(false,payViaBanknote.makePayment(banknote));	//makepayment() will return false as payment is not complete	
 	}
@@ -76,7 +113,16 @@ public class PayViaBanknoteTest {
 	public void testReturnChange() throws CashOverloadException, DisabledException{		
 		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(20)); 
 		payViaBanknote.makePayment(banknote);
-		payViaBanknote.returnChange();		
+		payViaBanknote.returnChange();
+	}
+	
+	@Test 
+	public void testReturnChange2() throws CashOverloadException, DisabledException{
+		Banknote banknote = new Banknote( Currency.getInstance("CAD"),BigDecimal.valueOf(20)); 
+		payViaBanknote.makePayment(banknote);		
+		payViaBanknote.returnChange();	
+	
+
 	}
 	
 	
