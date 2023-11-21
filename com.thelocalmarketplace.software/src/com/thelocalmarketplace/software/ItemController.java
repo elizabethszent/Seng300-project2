@@ -9,6 +9,7 @@ package com.thelocalmarketplace.software;
 import com.jjjwelectronics.AbstractDevice;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
+import com.jjjwelectronics.Item;
 import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.OverloadedDevice;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
@@ -19,27 +20,31 @@ import com.jjjwelectronics.scanner.IBarcodeScanner;
 import com.thelocalmarketplace.hardware.BarcodedProduct;
 import com.thelocalmarketplace.hardware.Product;
 import com.thelocalmarketplace.hardware.external.ProductDatabases;
-import java.util.Map;
+import com.thelocalmarketplace.software.exceptions.OrderException;
 
+import java.util.Map;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 
 /**
- * AddItemByBarcode class handles the addition of products to an order by scanning barcodes
+ * The ItemController class handles the addition of products to an order by scanning barcodes
  * and ensures that the expected weight matches the actual weight using a WeightDiscrepancy object.
  *
  * @author Enzo Mutiso UCID: 30182555
  * @author Abdelrahman Mohamed UCID: 30162037
  * @author Elizabeth Szentmiklossy UCID: 30165216
  */
-public final class AddItemByBarcode extends AbstractDevice<AddItemListner> implements BarcodeScannerListener, WeightDiscrepancyListner {
+public final class ItemController extends AbstractDevice<ItemControllerListener> implements BarcodeScannerListener, WeightDiscrepancyListner {
 
     /**
      * The order where products will be added.
      */
-    private Map<Barcode, BarcodedProduct> order;
-    
+//    private Map<Barcode, BarcodedProduct> order;
+	private HashMap<Item, Integer> order;
+
     /**
      * Variable to keep track of total cost of the order
      */
@@ -81,8 +86,15 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param scale          The ElectronicScale object to get the actual weight.
      * @param database       The database of products.
      */
+    
+    public ItemController(HashMap<Item, Integer> order, WeightDiscrepancy discrepancy, ActionBlocker blocker)
+    {
+    	this.order = order;
+    	this.actionBlocker = blocker;
+    	this.discrepancy = discrepancy;
+    }
 
-    public AddItemByBarcode(IBarcodeScanner scanner, Map<Barcode, BarcodedProduct> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
+    public ItemController(IBarcodeScanner scanner, HashMap<Item, Integer> order, WeightDiscrepancy discrepancy, ActionBlocker blocker, AbstractElectronicScale scale) {
         this.order = order;
         this.actionBlocker = blocker;
         this.scale = scale;
@@ -93,14 +105,27 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
         discrepancy.register(this);
         this.scanner.register(this);
     }
+
     
-    public void ItemHasBeenAdded(Product product){
-    	for(AddItemListner l : listeners()){
-			l.ItemHasBeenAdded(product);
+    public void ItemHasBeenAdded(Item item){
+    	for(ItemControllerListener l : listeners()){
+			l.ItemHasBeenAdded(item);
 			}
     }
-    
-    
+
+	/**
+	 * Notify listeners that an item has been removed from the order
+	 * 
+	 * @param item - the item that has been removed from the order
+	 */
+	public void itemHasBeenRemoved(Item item, int amount)
+	{
+		for(ItemControllerListener l : listeners())
+		{
+			l.ItemHasBeenRemoved(item, amount);
+		}
+	}
+
     public void scanBarcode(BarcodedItem item) {
     	while (!beenCalled) {
     		this.scanner.enable();
@@ -124,8 +149,11 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
                 try {
                 	BarcodedProduct product = getProductByBarcode(barcode);
                 	totalPrice = totalPrice + product.getPrice();
-                	addBarcodedProductToOrder(product, order, barcodeScanner);
-                	ItemHasBeenAdded(product);
+
+                	BarcodedItem item = new BarcodedItem(barcode, new Mass(product.getExpectedWeight()));
+                	addBarcodedItemToOrder(item, order, barcodeScanner);
+                	ItemHasBeenAdded(item);
+                	
                 }
                 catch (ProductNotFoundException e){
                 }
@@ -150,17 +178,6 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
 	}
 
 
-    /**
-     * Exception class for handling weight discrepancy errors during barcode scanning.
-     */
-    public static class WeightDiscrepancyException extends RuntimeException {
-        /**
-         * @param message The message to be displayed when the exception is thrown.
-         */
-        public WeightDiscrepancyException(String message) {
-            super(message);
-        }
-    }
 
     /**
      * Retrieves product information by its barcode.
@@ -183,9 +200,56 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      *
      * @return The list of products in the current order.
      */
-    public Map<Barcode, BarcodedProduct> getOrder( ) {
+    public HashMap<Item, Integer> getOrder( ) {
         return order;
     }
+    
+    /**
+     * Returns the total amount of items that are in the order
+     * 
+     * @param order - the order to check
+     * @return - the total amount of items that are in the order
+     */
+    public int getTotalAmountOfItemsFromOrder(HashMap<Item, Integer> order)
+    {
+    	if(order == null)
+    	{
+    		throw new NullPointerException();
+    	}
+    	
+    	int sum = 0;
+    	for(int amount : order.values())
+    	{
+    		sum += amount;
+    	}
+
+    	return sum;
+    }
+    
+    /**
+     * Returns the amount of 1 particular item in the order
+     * if the item is not in the order, returns 0
+     * 
+     * @param item - item to check the amount of in the order
+     * @param order - order to check from
+     * @return - the number of a particular item. If the item is not in the order 0
+     */
+    public int getAmountOfItemInOrder(Item item, HashMap<Item, Integer> order)
+    {
+    	if(order == null || item == null)
+    	{
+    		throw new NullPointerException();
+    	}
+    	
+    	//if the item is no in the order, return 0
+    	if(!order.containsKey(item))
+    	{
+    		return 0;
+    	}
+    	
+    	return order.get(item);
+    }
+
     
     /**
      * Method that returns whether the scanner can scan
@@ -201,8 +265,9 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
      * @param order         The order where products will be added.
      * @param barcodeScanner The barcode scanner.
      */
-    private void addBarcodedProductToOrder(BarcodedProduct product, Map<Barcode, BarcodedProduct> order, IBarcodeScanner barcodeScanner) {
-        order.put(product.getBarcode(), product);
+    private void addBarcodedItemToOrder(BarcodedItem item, HashMap<Item, Integer> order, IBarcodeScanner barcodeScanner) {
+
+    	order.put(item, 1);
         if(discrepancy.CompareWeight()) {
             barcodeScanner.enable();
         } else {
@@ -219,6 +284,58 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     	return this.totalPrice;
     }
 
+	/**
+	 * Removes an item from an order 
+	 * 
+	 * @param item - the item to remove from the order
+	 * @param amount - the number of item to remove from cart
+	 * @param order - the order that the item is to be removed from
+	 */
+	public void removeItemFromOrder(Item item, int amount, HashMap<Item, Integer> order)
+	{
+		if(item == null || order == null)
+		{
+			throw new NullPointerException();
+		}
+	
+		if(order.size() <= 0 || order.get(item) == null)
+		{
+			throw new OrderException();
+		}
+		
+		//block customer interaction
+		actionBlocker.blockInteraction();
+		
+		
+		int itemAmount = order.get(item);
+		int amountAfterRemoving = itemAmount - amount;
+		int actualRemovalAmount = 0;
+		
+
+		//if it's the only item in the cart, remove all instances of that item (case of equal to 1)
+		//if it's 0 or less, then the amount to remove exceeded the amount in the cart, so we can still remove
+		//that item from the cart
+		if(amountAfterRemoving <= 0)
+		{
+			order.remove(item);
+			actualRemovalAmount = itemAmount;
+		}
+		//if there are more than one of that item in the cart than we're removing, decrement the amount by that much
+		else
+		{
+			order.put(item, amountAfterRemoving);
+			actualRemovalAmount = amount;
+		}
+		
+		BigDecimal removalWeightBD = item.getMass().inGrams().multiply(new BigDecimal(actualRemovalAmount));
+		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(removalWeightBD));
+
+		itemHasBeenRemoved(item, actualRemovalAmount);
+
+		actionBlocker.unblockInteraction();
+	}
+
+
     @Override
     public void aDeviceHasBeenEnabled(IDevice<? extends IDeviceListener> device) {
     }
@@ -234,6 +351,4 @@ public final class AddItemByBarcode extends AbstractDevice<AddItemListner> imple
     @Override
     public void aDeviceHasBeenTurnedOff(IDevice<? extends IDeviceListener> device) {
     }
-
-
 }
