@@ -9,7 +9,6 @@ import com.jjjwelectronics.AbstractDevice;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
-import com.jjjwelectronics.scanner.AbstractBarcodeScanner;
 import com.tdc.AbstractComponent;
 import com.tdc.IComponent;
 
