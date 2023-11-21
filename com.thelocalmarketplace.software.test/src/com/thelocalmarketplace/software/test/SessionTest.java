@@ -5,7 +5,10 @@ import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Mass;
 import com.jjjwelectronics.Numeral;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
+import com.jjjwelectronics.scale.ElectronicScaleGold;
 import com.jjjwelectronics.scanner.*;
+import com.tdc.coin.CoinDispenserGold;
+import com.thelocalmarketplace.hardware.CoinTray;
 import com.thelocalmarketplace.software.Session;
 import com.thelocalmarketplace.software.WeightDiscrepancy;
 
@@ -94,11 +97,13 @@ public class SessionTest {
     }
     
 	 @Test
-	    public void weightdiscrepancy(){
-		 //scan a item
-		 //check that hardware has been disabled
-		 
-		 
+	    public void weightDiscrepancy(){
+         ElectronicScaleGold scale = new ElectronicScaleGold();
+         CoinTray coinTray = new CoinTray(10);
+         scale.plugIn(grid);
+         scale.turnOn();
+         mySession.addHardwareComponent(coinTray);
+         mySession.addHardwareDevice(scale);
+         myScanner.scan(myItem2);
 	 }
-	    
 }

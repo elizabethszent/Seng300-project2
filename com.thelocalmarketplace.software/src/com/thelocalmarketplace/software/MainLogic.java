@@ -29,6 +29,7 @@ public class MainLogic {
      * @param station
      *              The self-checkout machine on which to install the software
      *
+     * More paramters and methods will be necessary when GUI is implemented.
      */
     public static MainLogic installOn(AbstractSelfCheckoutStation station) {
         return new MainLogic(station);
@@ -45,5 +46,7 @@ public class MainLogic {
                 hardwareList.add(field);
             }
         }
+        currentSession = new Session(hardwareList);
+        currentSession.freezeSession();
     }
 }

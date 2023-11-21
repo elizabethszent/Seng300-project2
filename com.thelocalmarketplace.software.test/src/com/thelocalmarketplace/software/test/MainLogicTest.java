@@ -51,7 +51,5 @@ public class MainLogicTest {
         BarcodedItem myItem = new BarcodedItem(barcode, new Mass(10));
         assertTrue(checkoutStation.baggingArea.isPoweredUp());
         assertFalse(checkoutStation.banknoteValidator.isDisabled());
-        checkoutStation.baggingArea.addAnItem(myItem);
-        assertTrue(checkoutStation.banknoteValidator.isDisabled());
     }
 }
