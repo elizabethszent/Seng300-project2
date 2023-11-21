@@ -2,19 +2,13 @@ package com.thelocalmarketplace.software;
 
 import com.thelocalmarketplace.hardware.AbstractSelfCheckoutStation;
 import com.thelocalmarketplace.hardware.Product;
-import com.thelocalmarketplace.hardware.SelfCheckoutStationBronze;
-import com.thelocalmarketplace.hardware.external.*;
 
-import ca.simulation.SimulationException;
 
 import com.jjjwelectronics.AbstractDevice;
 import com.jjjwelectronics.IDevice;
 import com.jjjwelectronics.IDeviceListener;
 import com.jjjwelectronics.Item;
 import com.jjjwelectronics.Mass;
-import com.jjjwelectronics.scale.ElectronicScaleSilver;
-import com.jjjwelectronics.scale.ElectronicScaleGold;
-import com.jjjwelectronics.scale.ElectronicScaleBronze;
 import com.jjjwelectronics.scale.AbstractElectronicScale;
 import com.jjjwelectronics.scale.IElectronicScale;
 import com.jjjwelectronics.scale.ElectronicScaleListener; 
