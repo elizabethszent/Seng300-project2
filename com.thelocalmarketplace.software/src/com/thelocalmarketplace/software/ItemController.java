@@ -335,7 +335,7 @@ public final class ItemController extends AbstractDevice<ItemControllerListener>
 		}
 		
 		BigDecimal removalWeightBD = item.getMass().inGrams().multiply(new BigDecimal(actualRemovalAmount));
-		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(removalWeightBD));
+		discrepancy.expectedWeight = new Mass(discrepancy.expectedWeight.inGrams().subtract(removalWeightBD).abs());
 
 		itemHasBeenRemoved(item, actualRemovalAmount);
 
